@@ -62,6 +62,10 @@
 #include "ui/welcome.h"
 #include "ui/menu.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #include "external/printf/printf.h"
 
 void _putchar(__attribute__((unused)) char c)
@@ -98,6 +102,10 @@ void Main(void)
     BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
 
     SETTINGS_InitEEPROM();
+
+#ifdef ENABLE_ARDF
+    ARDF_init();
+#endif
 
     #ifdef ENABLE_FEAT_F4HWN
         gDW = gEeprom.DUAL_WATCH;

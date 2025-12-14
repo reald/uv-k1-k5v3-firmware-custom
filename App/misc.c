@@ -104,6 +104,10 @@ bool              gSetting_350EN;
 uint8_t           gSetting_F_LOCK;
 bool              gSetting_ScrambleEnable;
 
+#ifdef ENABLE_ARDF
+bool              gSetting_ARDFEnable = false;
+#endif
+
 enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 
 #ifdef ENABLE_AM_FIX

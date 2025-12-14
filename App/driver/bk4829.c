@@ -721,7 +721,7 @@ void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const b
             //     // with weak RX signals the RX bandwidth is reduced
             //     val = 0x4458;
             // }
-            val = 0x345C;
+            val = 0x347C; // fixme, was 0x345C
             break;
         default:
             val = 0x5C;

@@ -41,6 +41,16 @@ enum
     MENU_OFFSET,
     MENU_TOT,
     MENU_W_N,
+#ifdef ENABLE_ARDF
+    MENU_ARDF,
+    MENU_ARDF_NUMFOXES,
+    MENU_ARDF_FOXDURATION,
+    MENU_ARDF_SETFOX,
+    MENU_ARDF_TIME_RESET,
+    MENU_ARDF_GAIN_REMEMBER,
+    MENU_ARDF_CYCLE_END_BEEP,
+    MENU_ARDF_CLOCK_CORR,
+#endif
 #ifndef ENABLE_FEAT_F4HWN
     MENU_SCR,
 #endif
@@ -163,6 +173,11 @@ enum
 
 extern const uint8_t FIRST_HIDDEN_MENU_ITEM;
 extern const t_menu_item MenuList[];
+
+#ifdef ENABLE_ARDF
+extern const char        gSubMenu_ARDF[3][10];
+extern const char        gSubMenu_ARDF_Remember_Gain[4][6];
+#endif
 
 extern const char        gSubMenu_TXP[8][6];
 extern const char        gSubMenu_SFT_D[3][4];

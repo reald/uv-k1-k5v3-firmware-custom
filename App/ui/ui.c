@@ -27,6 +27,9 @@
 #ifdef ENABLE_AIRCOPY
     #include "ui/aircopy.h"
 #endif
+#ifdef ENABLE_ARDF
+    #include "ui/ardf.h"
+#endif
 #ifdef ENABLE_FMRADIO
     #include "ui/fmradio.h"
 #endif
@@ -64,6 +67,11 @@ void (*UI_DisplayFunctions[])(void) = {
 #ifdef ENABLE_REGA
     [DISPLAY_REGA] = &UI_DisplayREGA,
 #endif
+
+#ifdef ENABLE_ARDF
+    [DISPLAY_ARDF] = &UI_DisplayARDF,
+#endif
+
 };
 
 static_assert(ARRAY_SIZE(UI_DisplayFunctions) == DISPLAY_N_ELEM);

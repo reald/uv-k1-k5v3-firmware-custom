@@ -22,9 +22,9 @@ EXTRA_ARGS=("$@")
 # ---------------------------------------------
 # Validate preset name
 # ---------------------------------------------
-if [[ ! "$PRESET" =~ ^(Custom|Bandscope|Broadcast|Basic|RescueOps|Game|Fusion|All)$ ]]; then
+if [[ ! "$PRESET" =~ ^(Custom|Bandscope|Broadcast|Basic|RescueOps|Game|ARDF|ARDF-K5v3|ARDF-K1|Fusion|All)$ ]]; then
   echo "❌ Unknown preset: '$PRESET'"
-  echo "Valid presets are: Custom, Bandscope, Broadcast, Basic, RescueOps, Game, Fusion, All"
+  echo "Valid presets are: Custom, Bandscope, Broadcast, Basic, RescueOps, Game, ARDF, ARDF-K5v3, ARDF-K1, Fusion, All"
   exit 1
 fi
 
@@ -63,6 +63,9 @@ if [[ "$PRESET" == "All" ]]; then
   done
   echo ""
   echo "🎉 All presets built successfully!"
+elif [[ "$PRESET" == "ARDF" ]]; then
+    build_preset ARDF-K5v3
+    build_preset ARDF-K1
 else
   build_preset "$PRESET"
 fi

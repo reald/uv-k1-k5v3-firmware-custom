@@ -29,6 +29,10 @@
 #include "driver/backlight.h"
 #include "driver/gpio.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #define DECREMENT(cnt) \
     do {               \
         if (cnt > 0)   \
@@ -50,6 +54,10 @@ void SysTick_Handler(void)
     gGlobalSysTickCounter++;
     
     gNextTimeslice = true;
+
+#ifdef ENABLE_ARDF
+    gARDFTime10ms++;
+#endif
 
     if ((gGlobalSysTickCounter % 50) == 0) {
         gNextTimeslice_500ms = true;

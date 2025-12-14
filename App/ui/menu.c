@@ -54,6 +54,18 @@ const t_menu_item MenuList[] =
     {"TxODir",      MENU_SFT_D         }, // was "SFT_D"
     {"TxOffs",      MENU_OFFSET        }, // was "OFFSET"
     {"W/N",         MENU_W_N           },
+
+#ifdef ENABLE_ARDF
+    {"ARDF",        MENU_ARDF          },
+    {"NumFox",      MENU_ARDF_NUMFOXES },
+    {"FoxDur",      MENU_ARDF_FOXDURATION},
+    {"ActFox",      MENU_ARDF_SETFOX   },
+    {"TiRst",       MENU_ARDF_TIME_RESET },
+    {"GainRe",      MENU_ARDF_GAIN_REMEMBER },
+    {"EndSig",      MENU_ARDF_CYCLE_END_BEEP },
+    {"ClkCor",      MENU_ARDF_CLOCK_CORR },
+#endif
+
 #ifndef ENABLE_FEAT_F4HWN
     {"Scramb",      MENU_SCR           }, // was "SCR"
 #endif
@@ -189,6 +201,23 @@ const t_menu_item MenuList[] =
 };
 
 const uint8_t FIRST_HIDDEN_MENU_ITEM = MENU_F_LOCK;
+
+#ifdef ENABLE_ARDF
+const char gSubMenu_ARDF[][10] =
+{
+    "OFF",
+    "ARDF",
+    "DF Simple",
+};
+
+const char gSubMenu_ARDF_Remember_Gain[][6] =
+{
+    "OFF",
+    "VFO A",
+    "VFO B",
+    "BOTH"
+};
+#endif
 
 const char gSubMenu_TXP[][6] =
 {
@@ -464,6 +493,10 @@ const t_sidefunction gSubMenu_SIDEFUNCTIONS[] =
     //#if !defined(ENABLE_SPECTRUM) || !defined(ENABLE_FMRADIO)
     {"MUTE",            ACTION_OPT_MUTE},
     //#endif
+#ifdef ENABLE_ARDF
+    {"ARDF\noff/on",    ACTION_OPT_ARDF_ON_OFF},
+    {"ARDF\nSet\nMed.Gain", ACTION_OPT_ARDF_GAIN_MIDDLE},
+#endif
     #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
         {"POWER\nHIGH",    ACTION_OPT_POWER_HIGH},
         {"REMOVE\nOFFSET",  ACTION_OPT_REMOVE_OFFSET},
@@ -700,6 +733,64 @@ void UI_DisplayMenu(void)
         case MENU_W_N:
             strcpy(String, gSubMenu_W_N[gSubMenuSelection]);
             break;
+
+
+#ifdef ENABLE_ARDF
+
+        case MENU_ARDF:
+            strcpy(String, gSubMenu_ARDF[gSubMenuSelection]);
+            break;
+
+        case MENU_ARDF_NUMFOXES:
+            if ( gSubMenuSelection != 0 )
+                sprintf(String, "%d", gSubMenuSelection);
+            else
+                sprintf(String, "No Timing");
+            break;
+
+        case MENU_ARDF_FOXDURATION:
+            if (!gIsInSubMenu || gInputBoxIndex == 0)
+            {
+                sprintf(String, "%03d.%02u", gSubMenuSelection / 100, gSubMenuSelection % 100);
+                UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
+            }
+            else
+            {
+                const char * ascii = INPUTBOX_GetAscii();
+                sprintf(String, "%03d.%02u", StrToUL(ascii) / 100, StrToUL(ascii) % 100 );
+                UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
+            }
+
+            UI_PrintString("s",  menu_item_x1, menu_item_x2, 3, 8);
+
+            already_printed = true;
+            break;
+
+        case MENU_ARDF_SETFOX:
+            sprintf(String, "%d", gSubMenuSelection);
+            break;
+
+        case MENU_ARDF_TIME_RESET:
+            sprintf(String, "ARDF Timer\nReset");
+            break;
+
+        case MENU_ARDF_GAIN_REMEMBER:
+            strcpy(String, gSubMenu_ARDF_Remember_Gain[gSubMenuSelection]);
+            break;
+
+        case MENU_ARDF_CYCLE_END_BEEP:
+                if ( gSubMenuSelection != 0 )
+                sprintf(String, "%d s\nHeadphone:\nUse Filter", gSubMenuSelection);
+            else
+                sprintf(String, "off");
+            break;
+
+        case MENU_ARDF_CLOCK_CORR:
+            sprintf(String, "%d", gSubMenuSelection);
+            break;
+
+#endif
+
 
 #ifndef ENABLE_FEAT_F4HWN
         case MENU_SCR:

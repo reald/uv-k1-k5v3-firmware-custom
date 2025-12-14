@@ -25,6 +25,9 @@
     #include "app/aircopy.h"
 #endif
 #include "app/app.h"
+#ifdef ENABLE_ARDF
+    #include "app/ardf.h"
+#endif
 #include "app/chFrScanner.h"
 #include "app/dtmf.h"
 #ifdef ENABLE_FLASHLIGHT
@@ -98,6 +101,11 @@ void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
 #ifdef ENABLE_AIRCOPY
     [DISPLAY_AIRCOPY] = &AIRCOPY_ProcessKeys,
 #endif
+
+#ifdef ENABLE_ARDF
+    [DISPLAY_ARDF] = &MAIN_ProcessKeys,
+#endif
+
 };
 
 #ifdef ENABLE_REGA
@@ -648,6 +656,10 @@ static void DualwatchAlternate(void)
         gDualWatchCountdown_10ms = gIsNoaaMode ? dual_watch_count_noaa_10ms : dual_watch_count_toggle_10ms;
     #else
         gDualWatchCountdown_10ms = dual_watch_count_toggle_10ms;
+    #endif
+
+    #ifdef ENABLE_ARDF
+    ARDF_ActivateGainIndex();
     #endif
 }
 
@@ -1365,6 +1377,10 @@ void APP_TimeSlice10ms(void)
     gNextTimeslice = false;
     gFlashLightBlinkCounter++;
 
+#ifdef ENABLE_ARDF
+    ARDF_10ms();
+#endif
+
 #ifdef ENABLE_AM_FIX
     if (gRxVfo->Modulation == MODULATION_AM) {
         AM_fix_10ms(gEeprom.RX_VFO);
@@ -1597,6 +1613,11 @@ void APP_TimeSlice500ms(void)
 #endif
 
     // Skipped authentic device check
+
+#ifdef ENABLE_ARDF
+    ARDF_500ms();
+#endif
+
 
 #ifdef ENABLE_FMRADIO
     if (gFmRadioCountdown_500ms > 0)
@@ -1956,7 +1977,12 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 #endif
     }
 
-    bool lowBatPopup = gLowBattery && !gLowBatteryConfirmed &&  gScreenToDisplay == DISPLAY_MAIN;
+    bool lowBatPopup = gLowBattery && !gLowBatteryConfirmed
+                       && ( (gScreenToDisplay == DISPLAY_MAIN)
+#ifdef ENABLE_ARDF
+                            || ( (gScreenToDisplay == DISPLAY_ARDF) && (gARDFDFSimpleMode == false) )
+#endif
+                          );
 
 #ifdef ENABLE_FEAT_F4HWN // Disable PTT if KEY_LOCK
     bool lck_condition = false;
@@ -1991,6 +2017,15 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                 return;
             }
         }
+#ifdef ENABLE_ARDF
+        else if ( gSetting_ARDFEnable
+                  && gEeprom.KEY_LOCK
+                  && (Key == KEY_UP || Key == KEY_DOWN)
+                )
+        {
+            // ARDF on and keyboard locked: pass key up and down for manual gain change
+        }
+#endif
         // KEY_MENU has a special treatment here, because we want to pass hold event to ACTION_Handle
         // but we don't want it to complain when initial press happens
         // we want to react on realese instead
@@ -2001,10 +2036,17 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                 !(Key == KEY_MENU && !bKeyPressed))  // pass KEY_MENU released
                 return;
 
-            // keypad is locked, tell the user
-            AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-            gKeypadLocked  = 4;          // 2 seconds
-            gUpdateDisplay = true;
+#ifdef ENABLE_ARDF
+            if ( !gSetting_ARDFEnable ) // do not tell user keypad is locked in ARDF mode
+            {
+#endif
+                // keypad is locked, tell the user
+                AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
+                gKeypadLocked  = 4;          // 2 seconds
+                gUpdateDisplay = true;
+#ifdef ENABLE_ARDF
+            }
+#endif
             return;
         }
     }
@@ -2199,7 +2241,14 @@ Skip:
             flagSaveChannel = gRequestSaveChannel;
 
             if (gRequestDisplayScreen == DISPLAY_INVALID)
+            {
                 gRequestDisplayScreen = DISPLAY_MAIN;
+#ifdef ENABLE_ARDF
+                if ( gScreenToDisplay == DISPLAY_ARDF )
+                        gRequestDisplayScreen = DISPLAY_ARDF;
+#endif
+            }
+
         }
 
         gRequestSaveChannel = 0;
@@ -2214,7 +2263,13 @@ Skip:
             RADIO_ConfigureChannel(gEeprom.TX_VFO, gVfoConfigureMode);
 
         if (gRequestDisplayScreen == DISPLAY_INVALID)
+        {
             gRequestDisplayScreen = DISPLAY_MAIN;
+#ifdef ENABLE_ARDF
+            if ( gScreenToDisplay == DISPLAY_ARDF )
+                    gRequestDisplayScreen = DISPLAY_ARDF;
+#endif
+        }
 
         gFlagReconfigureVfos = true;
         gVfoConfigureMode    = VFO_CONFIGURE_NONE;

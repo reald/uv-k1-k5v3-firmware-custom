@@ -205,6 +205,13 @@ enable_feature(ENABLE_FEAT_F4HWN_GMRS_FRS_MURS)
 enable_feature(ENABLE_FEAT_F4HWN_CA)
 enable_feature(ENABLE_FEAT_F4HWN_DEBUG)
 
+# ---- DL9CAT MODS ----
+enable_feature(ENABLE_ARDF
+    app/ardf.c
+    ui/ardf.c
+)
+enable_feature(ENABLE_PREVENT_TX)
+
 # ---- DEBUGGING ----
 
 enable_feature(ENABLE_AM_FIX_SHOW_DATA)

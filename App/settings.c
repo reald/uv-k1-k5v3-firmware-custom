@@ -28,6 +28,10 @@
 #include "settings.h"
 #include "ui/menu.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN_RESET_CHANNEL
 static const uint32_t gDefaultFrequencyTable[] =
 {
@@ -276,6 +280,69 @@ void SETTINGS_InitEEPROM(void)
         gEeprom.SCANLIST_PRIORITY_CH1[i] =  Data[j + 1];
         gEeprom.SCANLIST_PRIORITY_CH2[i] =  Data[j + 2];
     }
+
+#ifdef ENABLE_ARDF
+    // 0F20..0F2F
+    PY25Q16_ReadBuffer(0x00d000 + 0x04, Data, 8); // fixme
+
+    if ( Data[6] != 0xFF )
+    {
+        gSetting_ARDFEnable = Data[6] & 0x01;
+        gARDFNumFoxes = (Data[6] >> 1) & 0x0f;
+        gARDFGainRemember = (Data[6] >> 5) & 0x03;
+        gARDFDFSimpleMode = (Data[6] >> 7) & 0x01;
+    }
+    else
+    {
+        // eeprom empty. use defaults
+        gSetting_ARDFEnable = ARDF_DEFAULT_ENABLE;
+        gARDFNumFoxes = ARDF_DEFAULT_NUM_FOXES;
+        gARDFGainRemember = ARDF_DEFAULT_GAIN_REMEMBER;
+        gARDFDFSimpleMode = ARDF_DEFAULT_DF_SIMPLE;
+    }
+
+    if ( Data[7] != 0xFF )
+    {
+        gARDFCycleEndBeep_s = Data[7];
+    }
+    else
+    {
+        // eeprom empty. use defaults
+        gARDFCycleEndBeep_s = ARDF_CYCLE_END_BEEP_S_DEFAULT;
+    }
+
+    if ( (Data[0] != 0xFF) || (Data[1] != 0xFF) || (Data[2] != 0xFF) || (Data[3] != 0xFF) )
+    {
+        memcpy(&gARDFFoxDuration10ms, Data, sizeof(gARDFFoxDuration10ms));
+    }
+    else
+    {
+        gARDFFoxDuration10ms = ARDF_DEFAULT_FOX_DURATION;
+    }
+
+    if ( gARDFFoxDuration10ms < 100 )
+    {
+        gARDFFoxDuration10ms = ARDF_DEFAULT_FOX_DURATION;
+    }
+
+    if ( (Data[4] == 0xFF) && (Data[5] == 0xFF) )
+    {
+        // eeprom empty
+        gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
+    }
+    else
+    {
+        memcpy(&gARDFClockCorrAddTicksPerMin, &Data[4], sizeof(gARDFClockCorrAddTicksPerMin));
+
+        if ( (gARDFClockCorrAddTicksPerMin < -500) || (gARDFClockCorrAddTicksPerMin > 500) )
+        {
+            gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
+        }
+    }
+    gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+
+#endif
+
 
     // 0F40..0F47
     PY25Q16_ReadBuffer(0x00b000, Data, 8);
@@ -543,6 +610,11 @@ void SETTINGS_FactoryReset(bool bIsAll)
     {
         PY25Q16_SectorErase(0x009000);
     }
+    // 0f20 - 0f2f : erase ARDF
+    if (bIsAll)
+    {
+        PY25Q16_SectorErase(0x00d000);
+    }
     // 0f30 - 0f40 : keep
     // 0f40 - 0f48 : keep
     // 0f50 - 1bd0
@@ -619,6 +691,44 @@ void SETTINGS_SaveFM(void)
         PY25Q16_WriteBuffer(0x003000, gFM_Channels, sizeof(gFM_Channels), true);
     }
 #endif
+
+
+#ifdef ENABLE_ARDF
+
+// 0F20..0F2F
+void SETTINGS_SaveARDF(void)
+{
+    union {
+        struct {
+            uint32_t FoxDuration;
+            int16_t  ARDFClockCorrTicksMin;
+
+            uint8_t  ARDFEnable:1;
+            uint8_t  NumFoxes:4;
+            uint8_t  GainRemember:2;
+            uint8_t  DFSimpleMode:1;
+
+            uint8_t  CycleEndBeep_s;
+        };
+        uint8_t __raw[8];
+    } __attribute__((packed)) ARDFCfg;
+
+    memset(ARDFCfg.__raw, 0xFF, sizeof(ARDFCfg.__raw));
+
+    ARDFCfg.FoxDuration = gARDFFoxDuration10ms;
+    ARDFCfg.ARDFClockCorrTicksMin = gARDFClockCorrAddTicksPerMin;
+    ARDFCfg.ARDFEnable = gSetting_ARDFEnable;
+    ARDFCfg.NumFoxes = gARDFNumFoxes;
+    ARDFCfg.GainRemember = gARDFGainRemember;
+    ARDFCfg.DFSimpleMode = gARDFDFSimpleMode;
+    ARDFCfg.CycleEndBeep_s = gARDFCycleEndBeep_s;
+
+    PY25Q16_WriteBuffer(0x00d000 + 0x04, ARDFCfg.__raw, sizeof(ARDFCfg.__raw), true); // fixme: adresse
+
+}
+
+#endif
+
 
 void SETTINGS_SaveVfoIndices(void)
 {
@@ -1108,6 +1218,9 @@ State[1] = 0
 #endif
 #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
     | (1 << 6)
+#endif
+#ifdef ENABLE_ARDF
+    | (1 << 7)
 #endif
 ;
     PY25Q16_WriteBuffer(0x00c000, State, sizeof(State), true);

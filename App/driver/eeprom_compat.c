@@ -51,7 +51,7 @@ static const AddrMapping_t ADDR_MAPPINGS[] = {
     _MK_MAPPING(0x007000, 0x0e90, 0x0ee0),  //
     _MK_MAPPING(0x008000, 0x0ee0, 0x0f18),  //
     _MK_MAPPING(0x009000, 0x0f18, 0x0f20),  //
-    _MK_MAPPING(HOLE_ADDR, 0x0f20, 0x0f30), //
+    _MK_MAPPING(0x00d000, 0x0f20, 0x0f30),  //
     _MK_MAPPING(0x00a000, 0x0f30, 0x0f40),  //
     _MK_MAPPING(0x00b000, 0x0f40, 0x0f48),  //
     _MK_MAPPING(HOLE_ADDR, 0x0f48, 0x0f50), //

@@ -41,6 +41,10 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
@@ -205,6 +209,35 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_W_N) - 1;
             break;
+
+#ifdef ENABLE_ARDF
+
+        case MENU_ARDF:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_ARDF) - 1;
+            break;
+
+        case MENU_ARDF_NUMFOXES:
+            *pMin = 0;
+            *pMax = ARDF_NUM_FOX_MAX;
+                    break;
+
+        case MENU_ARDF_SETFOX:
+            *pMin = 1;
+            *pMax = MAX(1, gARDFNumFoxes);
+                    break;
+
+        case MENU_ARDF_GAIN_REMEMBER:
+            *pMin = 0;
+            *pMax = ARRAY_SIZE(gSubMenu_ARDF_Remember_Gain) - 1;
+            break;
+
+        case MENU_ARDF_CYCLE_END_BEEP:
+            *pMin = 0;
+            *pMax = ARDF_CYCLE_END_BEEP_S_MAX;
+                    break;
+
+#endif
 
         #ifdef ENABLE_ALARM
             case MENU_AL_MOD:
@@ -542,6 +575,124 @@ void MENU_AcceptSetting(void)
             gTxVfo->CHANNEL_BANDWIDTH = gSubMenuSelection;
             gRequestSaveChannel       = 1;
             return;
+
+
+#ifdef ENABLE_ARDF
+
+        case MENU_ARDF:
+
+            if ( gSubMenuSelection == 2 )
+            {
+                // DF simple mode implies ARDF on
+                gSubMenuSelection = 3;
+
+                // DF simple settings
+                gARDFNumFoxes = 0;
+                gARDFGainRemember = 0;
+                gEeprom.SQUELCH_LEVEL = 0;
+            }
+
+            if ( (gSubMenuSelection & 0x01) != 0 )
+            {
+                // an ARDF mode was switched on. make sure to use RxMode MAIN_ONLY!
+                gEeprom.DUAL_WATCH = DUAL_WATCH_OFF;
+                gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+
+                #ifdef ENABLE_FEAT_F4HWN
+                    gDW = gEeprom.DUAL_WATCH;
+                    gCB = gEeprom.CROSS_BAND_RX_TX;
+                    gSaveRxMode = true; // why is this necessary here?
+                #endif
+
+                gFlagReconfigureVfos = true;
+                gUpdateStatus        = true;
+            }
+
+            if ( ((gSetting_ARDFEnable & 0x01) + (gARDFDFSimpleMode << 1)) != gSubMenuSelection )
+            {
+                // value changed
+                gSetting_ARDFEnable = gSubMenuSelection & 0x01;
+                gARDFDFSimpleMode = (gSubMenuSelection >> 1) & 0x01;
+
+                RADIO_SetupAGC(gRxVfo->Modulation == MODULATION_AM, false); // if gSetting_ARDFEnable is set, AGC will be switched off
+
+                gARDFRequestSaveEEPROM = true;
+            }
+
+            break; // not return, save SQL and others, too
+
+        case MENU_ARDF_NUMFOXES:
+
+            if ( gARDFNumFoxes != gSubMenuSelection )
+            {
+                // value updated
+                gARDFNumFoxes = gSubMenuSelection;
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
+        case MENU_ARDF_FOXDURATION:
+
+            if ( gARDFFoxDuration10ms != (uint32_t)gSubMenuSelection )
+            {
+                // value updated
+                gARDFFoxDuration10ms = gSubMenuSelection;
+                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
+        case MENU_ARDF_SETFOX:
+
+            gARDFActiveFox = gSubMenuSelection - 1;
+
+            return;
+
+        case MENU_ARDF_TIME_RESET:
+
+            gARDFTime10ms = 0;
+
+            return;
+
+        case MENU_ARDF_GAIN_REMEMBER:
+
+            if ( gARDFGainRemember != gSubMenuSelection )
+            {
+                // value updated
+                gARDFGainRemember = gSubMenuSelection;
+
+                gARDFRequestSaveEEPROM = true;
+            }
+
+            return;
+
+        case MENU_ARDF_CYCLE_END_BEEP:
+
+            if ( gARDFCycleEndBeep_s != gSubMenuSelection )
+            {
+                // value updated
+                gARDFCycleEndBeep_s = gSubMenuSelection;
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
+        case MENU_ARDF_CLOCK_CORR:
+
+            if ( gARDFClockCorrAddTicksPerMin != gSubMenuSelection )
+            {
+                // value updated
+                gARDFClockCorrAddTicksPerMin = gSubMenuSelection;
+                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
+#endif
+
 
 #ifndef ENABLE_FEAT_F4HWN
         case MENU_SCR:
@@ -1074,6 +1225,57 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gTxVfo->CHANNEL_BANDWIDTH;
             break;
 
+
+#ifdef ENABLE_ARDF
+
+        case MENU_ARDF:
+            if ( gSetting_ARDFEnable==0 )
+            {
+               // ARDF off (even if DF simple mode bit set)
+               gSubMenuSelection = 0;
+            }
+            else if ( gARDFDFSimpleMode != 0 )
+            {
+               // ARDF on and DF simple mode
+               gSubMenuSelection = 2;
+            }
+            else
+            {
+               // ARDF on without DF simple mode
+               gSubMenuSelection = 1;
+            }
+            break;
+
+        case MENU_ARDF_NUMFOXES:
+            gSubMenuSelection = gARDFNumFoxes;
+            break;
+
+        case MENU_ARDF_FOXDURATION:
+            gSubMenuSelection = gARDFFoxDuration10ms;
+            break;
+
+        case MENU_ARDF_SETFOX:
+            gSubMenuSelection = gARDFActiveFox + 1;
+            break;
+
+        case MENU_ARDF_TIME_RESET:
+            gSubMenuSelection = 0;
+            break;
+
+        case MENU_ARDF_GAIN_REMEMBER:
+            gSubMenuSelection = gARDFGainRemember;
+            break;
+
+        case MENU_ARDF_CYCLE_END_BEEP:
+            gSubMenuSelection = gARDFCycleEndBeep_s;
+            break;
+
+        case MENU_ARDF_CLOCK_CORR:
+                        gSubMenuSelection = gARDFClockCorrAddTicksPerMin;
+                        break;
+#endif
+
+
 #ifndef ENABLE_FEAT_F4HWN
         case MENU_SCR:
             gSubMenuSelection = gTxVfo->SCRAMBLING_TYPE;
@@ -1521,6 +1723,30 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         return;
     }
 
+
+
+#ifdef ENABLE_ARDF
+
+    if (UI_MENU_GetCurrentMenuId() == MENU_ARDF_FOXDURATION)
+    {
+        uint32_t Duration10ms;
+
+        if (gInputBoxIndex < 5)
+        {
+            // invalid duration
+            return;
+        }
+
+        Duration10ms = StrToUL( INPUTBOX_GetAscii() );
+        if ( Duration10ms >= 100 )
+            gSubMenuSelection = Duration10ms;
+
+        gInputBoxIndex = 0;
+        return;
+    }
+
+#endif
+
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_CH ||
         UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
         UI_MENU_GetCurrentMenuId() == MENU_1_CALL ||
@@ -1632,7 +1858,18 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
             gAnotherVoiceID = VOICE_ID_CANCEL;
         #endif
 
-        gRequestDisplayScreen = DISPLAY_MAIN;
+        #ifdef ENABLE_ARDF
+            if ( gSetting_ARDFEnable )
+            {
+                gRequestDisplayScreen = DISPLAY_ARDF;
+            }
+            else
+            {
+                gRequestDisplayScreen = DISPLAY_MAIN;
+            }
+        #else
+            gRequestDisplayScreen = DISPLAY_MAIN;
+        #endif
 
         if (gEeprom.BACKLIGHT_TIME == 0) // backlight set to always off
         {
@@ -1918,6 +2155,47 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
         gRequestDisplayScreen = DISPLAY_MENU;
         return;
     }
+
+
+#ifdef ENABLE_ARDF
+
+    if ( UI_MENU_GetCurrentMenuId() == MENU_ARDF_FOXDURATION)
+    {
+        int32_t duration = (Direction * 10) + gSubMenuSelection;
+        if (duration <= 99999)
+        {
+            if (duration < 100)
+                duration = 99999;
+        }
+        else
+        {
+            duration = 100;
+        }
+
+        gSubMenuSelection     = duration;
+        gRequestDisplayScreen = DISPLAY_MENU;
+        return;
+    }
+
+    if ( UI_MENU_GetCurrentMenuId() == MENU_ARDF_CLOCK_CORR )
+    {
+        int16_t correction = Direction + gSubMenuSelection;
+        if (correction <= 500)
+        {
+            if (correction < -500)
+                correction = -500;
+        }
+        else
+        {
+            correction = 500;
+        }
+
+        gSubMenuSelection     = correction;
+        gRequestDisplayScreen = DISPLAY_MENU;
+        return;
+    }
+
+#endif
 
     VFO = 0;
 

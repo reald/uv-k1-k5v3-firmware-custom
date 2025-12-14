@@ -47,6 +47,10 @@
 #include "ui/ui.h"
 #include <stdlib.h>
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 static void toggle_chan_scanlist(void)
 {   // toggle the selected channels scanlist setting
 
@@ -99,6 +103,12 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 
         return; // prevent F function if MENU LOCK is true
     }
+#endif
+
+#ifdef ENABLE_ARDF
+    int8_t Direction = 1;
+    uint8_t Channel = gEeprom.ScreenChannel[Vfo];
+    uint8_t Next;
 #endif
 
     if (gScreenToDisplay == DISPLAY_MENU) {
@@ -280,6 +290,42 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
                 gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
             break;
 
+#ifdef ENABLE_ARDF
+
+        case KEY_DOWN:
+            Direction = -1;
+            [[fallthrough]];
+
+        case KEY_UP:
+
+            if (IS_FREQ_CHANNEL(Channel)) { // step/down in frequency
+                const uint32_t frequency = APP_SetFrequencyByStep(gTxVfo, Direction);
+
+                if (RX_freq_check(frequency) < 0) { // frequency not allowed
+                    gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+                    return;
+                }
+                gTxVfo->freq_config_RX.Frequency = frequency;
+                BK4819_SetFrequency(frequency);
+                gRequestSaveChannel = 1;
+                return;
+            }
+
+            Next = RADIO_FindNextChannel(Channel + Direction, Direction, false, 0);
+            if (Next == 0xFF)
+                return;
+            if (Channel == Next)
+                return;
+            gEeprom.MrChannel[gEeprom.TX_VFO] = Next;
+            gEeprom.ScreenChannel[gEeprom.TX_VFO] = Next;
+
+                    gRequestSaveVFO   = true;
+                    gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+
+            break;
+
+#else
+
 #ifdef ENABLE_FEAT_F4HWN // Set Squelch F + UP or Down and Step F + SIDE1 or F + SIDE2
         case KEY_UP:
             gEeprom.SQUELCH_LEVEL = (gEeprom.SQUELCH_LEVEL < 9) ? gEeprom.SQUELCH_LEVEL + 1: 9;
@@ -318,6 +364,8 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
             gVfoConfigureMode     = VFO_CONFIGURE;
             gWasFKeyPressed = false;
             break;
+#endif
+
 #endif
 
         default:
@@ -386,7 +434,7 @@ void channelMoveSwitch(void) {
             Channel = (Channel * 10) + gInputBox[i];
         }
 
-        if ((Channel == 0) && (gInputBoxIndex != 3)) {
+        if ((Channel == 0) || (gInputBoxIndex != 3)) {
             return;
         }
 
@@ -400,18 +448,34 @@ void channelMoveSwitch(void) {
             return;
         }
 
-        channelMove(Channel - 1);
+        // channelMove(Channel - 1);
     }
 }
 
 static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
-    if (bKeyHeld) { // key held down
-        if (bKeyPressed) {
-            if (gScreenToDisplay == DISPLAY_MAIN) {
-                if (gInputBoxIndex > 0) { // delete any inputted chars
+    if (bKeyHeld)
+    {
+        // key held down
+        if (bKeyPressed)
+        {
+            if ( (gScreenToDisplay == DISPLAY_MAIN)
+#ifdef ENABLE_ARDF
+                             || (gScreenToDisplay == DISPLAY_ARDF)
+#endif
+               )
+            {
+                if (gInputBoxIndex > 0)
+                {
+                    // delete any inputted chars
                     gInputBoxIndex        = 0;
                     gRequestDisplayScreen = DISPLAY_MAIN;
+#ifdef ENABLE_ARDF
+                    if ( gScreenToDisplay == DISPLAY_ARDF )
+                    {
+                        gRequestDisplayScreen = DISPLAY_ARDF;
+                    }
+#endif
                 }
 
                 gWasFKeyPressed = false;
@@ -453,6 +517,11 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
         gRequestDisplayScreen = DISPLAY_MAIN;
 
+        #ifdef ENABLE_ARDF
+        if ( gScreenToDisplay == DISPLAY_ARDF )
+            gRequestDisplayScreen = DISPLAY_ARDF;
+        #endif
+
         if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE)) { // user is entering channel number
 
             gKeyInputCountdown = (key_input_timeout_500ms / 4); // short time...
@@ -478,7 +547,7 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                 totalDigits = 7; // if frequency is uppen than GHz
             }
 
-            if (gInputBoxIndex == 0) {
+            if (gInputBoxIndex < totalDigits) {
                 // do nothing
                 return;
             }
@@ -569,6 +638,12 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         #endif
 
         gRequestDisplayScreen = DISPLAY_MAIN;
+
+        #ifdef ENABLE_ARDF
+        if ( gScreenToDisplay == DISPLAY_ARDF )
+            gRequestDisplayScreen = DISPLAY_ARDF;
+        #endif
+
         gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
         return;
     }
@@ -834,6 +909,48 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 
 static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 {
+
+#ifdef ENABLE_ARDF
+
+    if ( gSetting_ARDFEnable && bKeyPressed )
+    {
+        /* ARDF: process only short press */
+
+        if ( gWasFKeyPressed )
+        {
+            /* ARDF mode: F + UP/Down: frequency step or memory change  */
+            if ( Direction == 1 )
+            {
+                   processFKeyFunction(KEY_UP, false);
+            }
+            else
+            {
+                processFKeyFunction(KEY_DOWN, false);
+            }
+            gWasFKeyPressed = 0;
+               gARDFMemModeFreqToggleCnt_s = 0;
+
+            return;
+
+        }
+
+        // ARDF: adjust manual gain
+
+        if ( Direction == 1 )
+        {
+            ARDF_GainIncr();
+        }
+        else
+        {
+            ARDF_GainDecr();
+        }
+
+        ARDF_ActivateGainIndex();
+
+        return;
+    }
+
+#endif
 
 #ifdef ENABLE_FEAT_F4HWN // Set Squelch F + UP or Down
     if(gWasFKeyPressed) {

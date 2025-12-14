@@ -34,6 +34,10 @@
 #include "ui/ui.h"
 #include "ui/status.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
 #ifndef ENABLE_FEAT_F4HWN_DEBUG
 static void convertTime(uint8_t *line, uint8_t type) 
@@ -54,6 +58,140 @@ static void convertTime(uint8_t *line, uint8_t type)
 #endif
 #endif
 
+
+
+#ifdef ENABLE_ARDF
+static void UI_DisplayStatus_ARDF()
+{
+
+    char str[8] = "";
+
+    gUpdateStatus = false;
+    memset(gStatusLine, 0, sizeof(gStatusLine));
+
+    uint8_t     *line = gStatusLine;
+    unsigned int x    = 0;
+
+    if ( gScreenToDisplay == DISPLAY_MENU )
+    {
+        char buf[10];
+        uint8_t activefox = gARDFActiveFox + 1;
+        if ( activefox >= 10 )
+            activefox = 0;
+
+        int32_t resttime = ARDF_GetRestTime_s();
+
+        sprintf(buf, "F%d %d", activefox, resttime);
+        UI_PrintStringSmallBufferBold(buf, line + 32);
+    }
+    else
+    {
+        UI_PrintStringSmallBufferBold("ARDF", line + 32);
+    }
+
+    unsigned int x1 = x;
+
+#ifdef ENABLE_FEAT_F4HWN_DEBUG
+        // Only for debug
+        // Only for debug
+        // Only for debug
+
+        sprintf(str, "%d", gDebug);
+        UI_PrintStringSmallBufferNormal(str, line + x + 1);
+        x += 16;
+#endif
+
+
+    x = MAX(x1, 69u);
+
+    const void *src = NULL;   // Pointer to the font/bitmap to copy
+    size_t size = 0;          // Size of the font/bitmap
+
+    // Determine the source and size based on conditions
+    if (gEeprom.KEY_LOCK) {
+        src = gFontKeyLock;
+        size = sizeof(gFontKeyLock);
+    }
+    else if (gWasFKeyPressed) {
+        #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
+        if (!gEeprom.MENU_LOCK) {
+            src = gFontF;
+            size = sizeof(gFontF);
+        }
+        #else
+        src = gFontF;
+        size = sizeof(gFontF);
+        #endif
+    }
+    #ifdef ENABLE_FEAT_F4HWN
+        else if (gMute) {
+            src = gFontMute;
+            size = sizeof(gFontMute);
+        }
+    #endif
+    else if (gBackLight) {
+        src = gFontLight;
+        size = sizeof(gFontLight);
+    }
+    #ifdef ENABLE_FEAT_F4HWN_CHARGING_C
+    else if (gChargingWithTypeC) {
+        src = BITMAP_USB_C;
+        size = sizeof(BITMAP_USB_C);
+    }
+    #endif
+
+    // Perform the memcpy if a source was selected
+    if (src) {
+        memcpy(line + x + 1, src, size);
+    }
+
+    // Battery
+    unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1) - 0;
+
+    UI_DrawBattery(line + x2, gBatteryDisplayLevel, gLowBatteryBlink);
+
+    bool BatTxt = true;
+
+    switch (gSetting_battery_text) {
+        default:
+        case 0:
+            BatTxt = false;
+            break;
+
+        case 1:    // voltage
+            const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
+            sprintf(str, "%u.%02u", voltage / 100, voltage % 100);
+            break;
+
+        case 2:     // percentage
+            //gBatteryVoltageAverage = 999;
+            sprintf(str, "%02u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+            break;
+    }
+
+    if (BatTxt) {
+        x2 -= (7 * strlen(str));
+        UI_PrintStringSmallBufferNormal(str, line + x2);
+        /*
+        uint8_t shift = (strlen(str) < 5) ? 92 : 88;
+        GUI_DisplaySmallest(str, shift, 1, true, true);
+
+        for (uint8_t i = shift - 2; i < 110; i++) {
+            gStatusLine[i] ^= 0x7F; // invert
+        }
+        */
+    }
+
+    // **************
+
+    ST7565_BlitStatusLine();
+
+
+}
+#endif
+
+
+
 void UI_DisplayStatus()
 {
     char str[8] = "";
@@ -63,6 +201,16 @@ void UI_DisplayStatus()
 
     uint8_t     *line = gStatusLine;
     unsigned int x    = 0;
+
+#ifdef ENABLE_ARDF
+
+    if ( gSetting_ARDFEnable )
+    {
+        UI_DisplayStatus_ARDF();
+        return;
+    }
+
+#endif
 
 #ifdef ENABLE_NOAA
     // NOAA indicator

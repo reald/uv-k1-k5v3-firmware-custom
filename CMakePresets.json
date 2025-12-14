@@ -175,6 +175,43 @@
             }
         },
         {
+            "name": "ARDF-K5v3",
+            "inherits": "default",
+            "cacheVariables": {
+                "ENABLE_CUSTOM_MENU_LAYOUT": false,
+                "ENABLE_NAVIG_LEFT_RIGHT": false,
+                "ENABLE_AM_FIX": true,
+                "ENABLE_SPECTRUM": true,
+                "ENABLE_FMRADIO": true,
+                "ENABLE_VOX": true,
+                "ENABLE_AIRCOPY": false,
+                "ENABLE_FEAT_F4HWN_SCREENSHOT": true,
+                "ENABLE_FEAT_F4HWN_GAME": true,
+                "ENABLE_FEAT_F4HWN_PMR": true,
+                "ENABLE_FEAT_F4HWN_GMRS_FRS_MURS": true,
+                "ENABLE_FEAT_F4HWN_RESCUE_OPS": true,
+                "ENABLE_SWD": true,
+                "ENABLE_ARDF": true,
+                "ENABLE_PREVENT_TX": true,
+                "ENABLE_UART_RW_BK_REGS": true,
+                "EDITION_STRING": "ARDF",
+                "TARGET": "f4hwn.K5v3.ARDF",
+                "AUTHOR_STRING_2": "DL9CAT",
+                "VERSION_STRING_2": "v0.1a"
+            }
+        },
+        {
+            "name": "ARDF-K1",
+            "inherits": "ARDF-K5v3",
+            "cacheVariables": {
+                "ENABLE_NAVIG_LEFT_RIGHT": true,
+                "EDITION_STRING": "ARDF",
+                "TARGET": "f4hwn.K1.ARDF",
+                "AUTHOR_STRING_2": "DL9CAT",
+                "VERSION_STRING_2": "v0.1a"
+            }
+        },
+        {
             "name": "Fusion",
             "inherits": "default",
             "cacheVariables": {
@@ -217,6 +254,15 @@
         {
             "name": "Game",
             "configurePreset": "Game"
+        },
+
+        {
+            "name": "ARDF-K5v3",
+            "configurePreset": "ARDF-K5v3"
+        },
+        {
+            "name": "ARDF-K1",
+            "configurePreset": "ARDF-K1"
         },
         {
             "name": "Fusion",

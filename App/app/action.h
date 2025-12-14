@@ -53,4 +53,9 @@ void ACTION_SwitchDemodul(void);
 
 void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 
+#ifdef ENABLE_ARDF
+    void ACTION_ARDFOnOff(void);
+    void ACTION_ARDFGainMiddle(void);
+#endif
+
 #endif

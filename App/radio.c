@@ -36,6 +36,10 @@
 #include "settings.h"
 #include "ui/menu.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 VFO_Info_t    *gTxVfo;
 VFO_Info_t    *gRxVfo;
 VFO_Info_t    *gCurrentVfo;
@@ -680,6 +684,11 @@ void RADIO_SelectVfos(void)
     gRxVfo = &gEeprom.VfoInfo[gEeprom.RX_VFO];
 
     RADIO_SelectCurrentVfo();
+
+#ifdef ENABLE_ARDF
+    ARDF_ActivateGainIndex();
+#endif
+
 }
 
 void RADIO_SetupRegisters(bool switchToForeground)
@@ -1004,7 +1013,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
             mod = BK4819_AF_FM;
             break;
         case MODULATION_AM:
-            mod = BK4819_AF_FM; // AM no longer needs special AF setting
+            mod = BK4819_AF_AM;
             break;
         case MODULATION_USB:
             mod = BK4819_AF_BASEBAND2;
@@ -1029,7 +1038,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
     // the BK4819, nor what exactly they do.
     // So for now we just keep it as is to maintain compatibility.
     //
-    if (modulation != MODULATION_AM)
+   /* if (modulation != MODULATION_AM)
     {
         uint16_t uVar1 = BK4819_ReadRegister(0x31);
         BK4819_WriteRegister(0x31,uVar1 & 0xfffffffe);
@@ -1051,7 +1060,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
         BK4819_WriteRegister(0x54, 0x9775);
         BK4819_WriteRegister(0x55, 0x32c6);
         BK4819_SetFilterBandwidth(BK4819_FILTER_BW_AM, true);
-    }
+    }*/
     
     BK4819_SetRegValue(afDacGainRegSpec, 0xF);
     BK4819_WriteRegister(BK4819_REG_3D, modulation == MODULATION_USB ? 0 : 0x2AAB);
@@ -1063,11 +1072,27 @@ void RADIO_SetModulation(ModulationMode_t modulation)
 void RADIO_SetupAGC(bool listeningAM, bool disable)
 {
     static uint8_t lastSettings;
+
+#ifdef ENABLE_ARDF
+    uint8_t newSettings = (gSetting_ARDFEnable << 2) | (listeningAM << 1) | disable;
+#else
     uint8_t newSettings = (listeningAM << 1) | disable;
+#endif
+
     if(lastSettings == newSettings)
         return;
     lastSettings = newSettings;
 
+#ifdef ENABLE_ARDF
+    if ( gSetting_ARDFEnable )
+    {
+        ARDF_ActivateGainIndex();
+        BK4819_SetAGC(false);
+        //BK4819_InitAGC(false); // agc register for ARDF were set in ARDF_ActivateGainIndex()
+        return;
+    }
+    else
+#endif
 
     if(!listeningAM) { // if not actively listening AM we don't need any AM specific regulation
         BK4819_SetAGC(!disable);
@@ -1165,6 +1190,20 @@ void RADIO_PrepareTX(void)
         State = VFO_STATE_TX_DISABLE;
     }
 #endif
+
+#ifdef ENABLE_PREVENT_TX
+    // TX completely disabled
+    State = VFO_STATE_TX_DISABLE;
+#endif
+
+#ifdef ENABLE_ARDF
+    if ( gSetting_ARDFEnable )
+    {
+        // TX completely disabled in ARDF mode
+        State = VFO_STATE_TX_DISABLE;
+    }
+#endif
+
 
     if (State != VFO_STATE_NORMAL) {
         // TX not allowed

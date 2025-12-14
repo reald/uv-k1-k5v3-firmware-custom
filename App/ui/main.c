@@ -38,6 +38,10 @@
 #include "ui/ui.h"
 #include "audio.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN
     #include "driver/system.h"
 #endif
@@ -238,7 +242,7 @@ void UI_DisplayAudioBar(void)
 }
 #endif
 
-void DisplayRSSIBar(const bool now)
+void UI_DisplayRSSIBar(const bool now)
 {
 #if defined(ENABLE_RSSI_BAR)
 
@@ -268,6 +272,12 @@ void DisplayRSSIBar(const bool now)
         line = 3;
     }
 
+#if defined(ENABLE_ARDF)
+    if ( gSetting_ARDFEnable && gScreenToDisplay==DISPLAY_ARDF )
+    {
+        line = 3;
+    }
+#else
     //char rx[4];
     //sprintf(String, "%d", RxBlink);
     //UI_PrintStringSmallBold(String, 80, 0, RxLine);
@@ -286,6 +296,8 @@ void DisplayRSSIBar(const bool now)
         }
         ST7565_BlitLine(RxLine);
     }
+#endif
+
 #else
     const unsigned int line = 3;
 #endif
@@ -307,13 +319,17 @@ void DisplayRSSIBar(const bool now)
     if ((gEeprom.KEY_LOCK && gKeypadLocked > 0) || center_line != CENTER_LINE_RSSI)
         return;     // display is in use
 
-    if (gCurrentFunction == FUNCTION_TRANSMIT ||
-        gScreenToDisplay != DISPLAY_MAIN
+    if ( gCurrentFunction == FUNCTION_TRANSMIT
+         || ( (gScreenToDisplay != DISPLAY_MAIN)
+#ifdef ENABLE_ARDF
+              && (gScreenToDisplay != DISPLAY_ARDF)
+#endif
+            )
 #ifdef ENABLE_DTMF_CALLING
-        || gDTMF_CallState != DTMF_CALL_STATE_NONE
+         || gDTMF_CallState != DTMF_CALL_STATE_NONE
 #endif
         )
-        return;     // display is in use
+            return;     // display is in use
 
     if (now)
         memset(p_line, 0, LCD_WIDTH);
@@ -322,7 +338,14 @@ void DisplayRSSIBar(const bool now)
     int16_t rssi_dBm =
         BK4819_GetRSSI_dBm()
 #ifdef ENABLE_AM_FIX
-        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
+        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM)
+    #ifdef ENABLE_ARDF
+            && ( gSetting_ARDFEnable == false )
+    #endif
+        ? AM_fix_get_gain_diff() : 0)
+#endif
+#ifdef ENABLE_ARDF
+        + ( (gSetting_ARDFEnable != false) ? ARDF_Get_GainDiff() : 0 )
 #endif
         + dBmCorrTable[gRxVfo->Band];
 
@@ -348,8 +371,16 @@ void DisplayRSSIBar(const bool now)
     const int16_t rssi_dBm =
         BK4819_GetRSSI_dBm()
 #ifdef ENABLE_AM_FIX
-        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
+        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM)
+    #ifdef ENABLE_ARDF
+            && ( gSetting_ARDFEnable == false )
 #endif
+        ? AM_fix_get_gain_diff() : 0)
+#endif
+#ifdef ENABLE_ARDF
+        + ( (gSetting_ARDFEnable != false) ? ARDF_Get_GainDiff() : 0 )
+#endif
+
         + dBmCorrTable[gRxVfo->Band];
 
     int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;
@@ -469,7 +500,7 @@ void UI_MAIN_TimeSlice500ms(void)
 #endif
 
         if(FUNCTION_IsRx()) {
-            DisplayRSSIBar(true);
+            UI_DisplayRSSIBar(true);
         }
 #ifdef ENABLE_FEAT_F4HWN // Blink Green Led for white...
         else if(gSetting_set_eot > 0 && RxBlinkLed == 2)
@@ -1419,7 +1450,7 @@ void UI_DisplayMain(void)
 #ifdef ENABLE_RSSI_BAR
         if (rx) {
             center_line = CENTER_LINE_RSSI;
-            DisplayRSSIBar(false);
+            UI_DisplayRSSIBar(false);
         }
         else
 #endif

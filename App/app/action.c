@@ -45,6 +45,10 @@
     #include "app/rega.h"
 #endif
 
+#ifdef ENABLE_ARDF
+    #include "app/ardf.h"
+#endif
+
 #if defined(ENABLE_FMRADIO)
 static void ACTION_Scan_FM(bool bRestart);
 #endif
@@ -124,6 +128,14 @@ void (*action_opt_table[])(void) = {
 #ifdef ENABLE_REGA
     [ACTION_OPT_REGA_ALARM] = &ACTION_RegaAlarm,
     [ACTION_OPT_REGA_TEST] = &ACTION_RegaTest,
+#endif
+
+#ifdef ENABLE_ARDF
+    [ACTION_OPT_ARDF_ON_OFF] = &ACTION_ARDFOnOff,
+    [ACTION_OPT_ARDF_GAIN_MIDDLE] = &ACTION_ARDFGainMiddle,
+#else
+    [ACTION_OPT_ARDF_ON_OFF] = &FUNCTION_NOP,
+    [ACTION_OPT_ARDF_GAIN_MIDDLE] = &FUNCTION_NOP,
 #endif
 };
 
@@ -349,6 +361,19 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
     }
 
     // held or released after short press beyond this point
+
+#ifdef ENABLE_ARDF
+    if ( gSetting_ARDFEnable
+         && gEeprom.KEY_LOCK
+         && !( (funcShort==ACTION_OPT_A_B) || (funcShort==ACTION_OPT_ARDF_GAIN_MIDDLE) )
+       )
+    {
+        // ARDF mode is on and keys are locked:
+        // allow only A/B switch and gain middle setting on the function keys, nothing else
+        return;
+    }
+
+#endif
 
     action_opt_table[funcShort]();
 }
@@ -666,4 +691,47 @@ void ACTION_BackLightOnDemand(void)
         gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
     }
     #endif
+
+
+#ifdef ENABLE_ARDF
+
+void ACTION_ARDFOnOff(void)
+{
+    if ( gSetting_ARDFEnable )
+    {
+        gSetting_ARDFEnable = false;
+    }
+    else
+    {
+        gSetting_ARDFEnable = true;
+    }
+    RADIO_SetupAGC(gRxVfo->Modulation == MODULATION_AM, false); // if gSetting_ARDFEnable is set, AGC will be switched off
+
+    gARDFRequestSaveEEPROM = true;
+
+}
+
+
+void ACTION_ARDFGainMiddle(void)
+{
+    if ( gSetting_ARDFEnable )
+    {
+        uint8_t vfo = gEeprom.RX_VFO;
+        uint8_t activefox = gARDFActiveFox;
+
+        if ( ARDF_ActVfoHasGainRemember(vfo) == false )
+        {
+            // do not remember fox gains on this vfo
+            activefox = 0;
+        }
+
+        ardf_gain_index[vfo][activefox] = ARDF_GAIN_INDEX_MIDDLE;
+
+        ARDF_ActivateGainIndex();
+
+    }
+}
+
+#endif
+
 #endif

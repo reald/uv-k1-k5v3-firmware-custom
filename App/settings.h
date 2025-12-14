@@ -118,6 +118,8 @@ enum ACTION_OPT_t {
     ACTION_OPT_WN,
     ACTION_OPT_BACKLIGHT,
     ACTION_OPT_MUTE,
+    ACTION_OPT_ARDF_ON_OFF,
+    ACTION_OPT_ARDF_GAIN_MIDDLE,
     #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
         ACTION_OPT_POWER_HIGH,
         ACTION_OPT_REMOVE_OFFSET,
@@ -314,6 +316,11 @@ void     SETTINGS_FactoryReset(bool bIsAll);
 #ifdef ENABLE_FMRADIO
     void SETTINGS_SaveFM(void);
 #endif
+
+#ifdef ENABLE_ARDF
+void SETTINGS_SaveARDF(void);
+#endif
+
 void SETTINGS_SaveVfoIndices(void);
 void SETTINGS_SaveSettings(void);
 void SETTINGS_SaveChannelName(uint8_t channel, const char * name);
