@@ -721,7 +721,11 @@ void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const b
             //     // with weak RX signals the RX bandwidth is reduced
             //     val = 0x4458;
             // }
-            val = 0x347C; // fixme, was 0x345C
+#ifdef ENABLE_ARDF
+            val = 0x347C;
+#else
+            val = 0x345C;
+#endif
             break;
         default:
             val = 0x5C;

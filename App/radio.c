@@ -1013,7 +1013,11 @@ void RADIO_SetModulation(ModulationMode_t modulation)
             mod = BK4819_AF_FM;
             break;
         case MODULATION_AM:
-            mod = BK4819_AF_AM;
+#ifdef ENABLE_ARDF
+            mod = BK4819_AF_AM; // use old setting because of less noise
+#else
+            mod = BK4819_AF_FM; // AM no longer needs special AF setting
+#endif
             break;
         case MODULATION_USB:
             mod = BK4819_AF_BASEBAND2;
@@ -1038,7 +1042,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
     // the BK4819, nor what exactly they do.
     // So for now we just keep it as is to maintain compatibility.
     //
-   /* if (modulation != MODULATION_AM)
+   if (modulation != MODULATION_AM)
     {
         uint16_t uVar1 = BK4819_ReadRegister(0x31);
         BK4819_WriteRegister(0x31,uVar1 & 0xfffffffe);
@@ -1060,7 +1064,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
         BK4819_WriteRegister(0x54, 0x9775);
         BK4819_WriteRegister(0x55, 0x32c6);
         BK4819_SetFilterBandwidth(BK4819_FILTER_BW_AM, true);
-    }*/
+    }
     
     BK4819_SetRegValue(afDacGainRegSpec, 0xF);
     BK4819_WriteRegister(BK4819_REG_3D, modulation == MODULATION_USB ? 0 : 0x2AAB);
