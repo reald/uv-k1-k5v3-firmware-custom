@@ -197,7 +197,7 @@
                 "EDITION_STRING": "ARDF",
                 "TARGET": "f4hwn.K5v3.ARDF",
                 "AUTHOR_STRING_2": "DL9CAT",
-                "VERSION_STRING_2": "v0.1a"
+                "VERSION_STRING_2": "v0.1b"
             }
         },
         {
@@ -205,10 +205,7 @@
             "inherits": "ARDF-K5v3",
             "cacheVariables": {
                 "ENABLE_NAVIG_LEFT_RIGHT": true,
-                "EDITION_STRING": "ARDF",
-                "TARGET": "f4hwn.K1.ARDF",
-                "AUTHOR_STRING_2": "DL9CAT",
-                "VERSION_STRING_2": "v0.1a"
+                "TARGET": "f4hwn.K1.ARDF"
             }
         },
         {
