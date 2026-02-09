@@ -14,3 +14,4 @@ k5_eeprom.raw
 /build
 /serialtool/__pycache__
 /chirp_module/__pycache__
+.DS_Store

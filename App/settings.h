@@ -118,13 +118,14 @@ enum ACTION_OPT_t {
     ACTION_OPT_WN,
     ACTION_OPT_BACKLIGHT,
     ACTION_OPT_MUTE,
-    ACTION_OPT_ARDF_ON_OFF,
-    ACTION_OPT_ARDF_GAIN_MIDDLE,
+    ACTION_OPT_RXA,
     #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
         ACTION_OPT_POWER_HIGH,
         ACTION_OPT_REMOVE_OFFSET,
     #endif
 #endif
+    ACTION_OPT_ARDF_ON_OFF,
+    ACTION_OPT_ARDF_GAIN_MIDDLE,
 #ifdef ENABLE_REGA
     ACTION_OPT_REGA_ALARM,
     ACTION_OPT_REGA_TEST,
@@ -164,11 +165,11 @@ enum CHANNEL_DisplayMode_t {
 typedef enum CHANNEL_DisplayMode_t CHANNEL_DisplayMode_t;
 
 typedef struct {
-    uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
-    uint8_t               FreqChannel[2]; // last frequency channels used
-    uint8_t               MrChannel[2]; // last memory channels used
+    uint16_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
+    uint16_t               FreqChannel[2]; // last frequency channels used
+    uint16_t               MrChannel[2]; // last memory channels used
 #ifdef ENABLE_NOAA
-    uint8_t           NoaaChannel[2];
+    uint16_t           NoaaChannel[2];
 #endif
 
     // The actual VFO index (0-upper/1-lower) that is now used for RX, 
@@ -196,6 +197,7 @@ typedef struct {
     bool                  KEY_LOCK;
 #ifdef ENABLE_FEAT_F4HWN
     bool                  KEY_LOCK_PTT;
+    bool                  SET_NAV;
 #endif
 #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
     bool                  MENU_LOCK;
@@ -216,9 +218,8 @@ typedef struct {
     uint8_t               BACKLIGHT_TIME;
     uint8_t               SCAN_RESUME_MODE;
     uint8_t               SCAN_LIST_DEFAULT;
-    bool                  SCAN_LIST_ENABLED[3];
-    uint8_t               SCANLIST_PRIORITY_CH1[3];
-    uint8_t               SCANLIST_PRIORITY_CH2[3];
+    bool                  SCAN_LIST_ENABLED;
+    uint16_t              SCANLIST_PRIORITY_CH[6];
 //#ifdef ENABLE_FEAT_F4HWN_RESUME_STATE // Fix me !!! What the hell is this?
     uint8_t               CURRENT_STATE;
     uint8_t               CURRENT_LIST;
@@ -243,7 +244,7 @@ typedef struct {
     uint8_t               KEY_2_LONG_PRESS_ACTION;
     uint8_t               MIC_SENSITIVITY;
     uint8_t               MIC_SENSITIVITY_TUNING;
-    uint8_t               CHAN_1_CALL;
+    uint16_t              CHAN_1_CALL;
 #ifdef ENABLE_DTMF_CALLING
     char                  ANI_DTMF_ID[8];
     char                  KILL_CODE[8];
@@ -310,8 +311,8 @@ extern EEPROM_Config_t gEeprom;
 
 void     SETTINGS_InitEEPROM(void);
 void     SETTINGS_LoadCalibration(void);
-uint32_t SETTINGS_FetchChannelFrequency(const int channel);
-void     SETTINGS_FetchChannelName(char *s, const int channel);
+uint32_t SETTINGS_FetchChannelFrequency(const uint16_t channel);
+void     SETTINGS_FetchChannelName(char *s, const uint16_t channel);
 void     SETTINGS_FactoryReset(bool bIsAll);
 #ifdef ENABLE_FMRADIO
     void SETTINGS_SaveFM(void);
@@ -322,11 +323,12 @@ void SETTINGS_SaveARDF(void);
 #endif
 
 void SETTINGS_SaveVfoIndices(void);
+void SETTINGS_SaveVfoIndicesFlush(void);
 void SETTINGS_SaveSettings(void);
-void SETTINGS_SaveChannelName(uint8_t channel, const char * name);
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode);
+void SETTINGS_SaveChannelName(uint16_t channel, const char * name);
+void SETTINGS_SaveChannel(uint16_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode);
 void SETTINGS_SaveBatteryCalibration(const uint16_t * batteryCalibration);
-void SETTINGS_UpdateChannel(uint8_t channel, const VFO_Info_t *pVFO, bool keep, bool check, bool save);
+void SETTINGS_UpdateChannel(uint16_t channel, const VFO_Info_t *pVFO, bool keep, bool check, bool save);
 void SETTINGS_WriteBuildOptions(void);
 #ifdef ENABLE_FEAT_F4HWN_RESUME_STATE
     void SETTINGS_WriteCurrentState(void);

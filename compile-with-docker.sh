@@ -22,22 +22,25 @@ EXTRA_ARGS=("$@")
 # ---------------------------------------------
 # Validate preset name
 # ---------------------------------------------
-if [[ ! "$PRESET" =~ ^(Custom|Bandscope|Broadcast|Basic|RescueOps|Game|ARDF|ARDF-K5v3|ARDF-K1|Fusion|All)$ ]]; then
+if [[ ! "$PRESET" =~ ^(Custom|Bandscope|Broadcast|Basic|RescueOps|Game|Fusion|ARDF|All)$ ]]; then
   echo "❌ Unknown preset: '$PRESET'"
-  echo "Valid presets are: Custom, Bandscope, Broadcast, Basic, RescueOps, Game, ARDF, ARDF-K5v3, ARDF-K1, Fusion, All"
+  echo "Valid presets are: Custom, Bandscope, Broadcast, Basic, RescueOps, Game, Fusion, ARDF, All"
   exit 1
 fi
 
 # ---------------------------------------------
 # Build the Docker image (only needed once)
 # ---------------------------------------------
-docker build -t "$IMAGE" .
+if [[ "$(docker images -q $IMAGE)" == "" ]]; then
+  echo "Building Docker image..."
+  docker build -t "$IMAGE" .
+fi
 
 # ---------------------------------------------
 # Clean existing CMake cache to ensure toolchain reload
 # ---------------------------------------------
 rm -rf build
-
+export MSYS_NO_PATHCONV=1
 # ---------------------------------------------
 # Function to build one preset
 # ---------------------------------------------
@@ -59,15 +62,12 @@ build_preset() {
 # Handle 'All' preset
 # ---------------------------------------------
 if [[ "$PRESET" == "All" ]]; then
-  PRESETS=(Bandscope Broadcast Basic RescueOps Game Fusion)
+  PRESETS=(Bandscope Broadcast Basic RescueOps Game Fusion ARDF)
   for p in "${PRESETS[@]}"; do
     build_preset "$p"
   done
   echo ""
   echo "🎉 All presets built successfully!"
-elif [[ "$PRESET" == "ARDF" ]]; then
-    build_preset ARDF-K5v3
-    build_preset ARDF-K1
 else
   build_preset "$PRESET"
 fi

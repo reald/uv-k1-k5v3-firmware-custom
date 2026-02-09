@@ -9,6 +9,7 @@
             "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_LTO": false,
                 "ENABLE_FMRADIO": false,
                 "ENABLE_UART": true,
                 "ENABLE_USB": true,
@@ -34,7 +35,6 @@
                 "ENABLE_SHOW_CHARGE_LEVEL": false,
                 "ENABLE_REVERSE_BAT_SYMBOL": false,
                 "ENABLE_NO_CODE_SCAN_TIMEOUT": true,
-                "ENABLE_AM_FIX": false,
                 "ENABLE_SQUELCH_MORE_SENSITIVE": true,
                 "ENABLE_FASTER_CHANNEL_SCAN": true,
                 "ENABLE_RSSI_BAR": true,
@@ -59,18 +59,17 @@
                 "ENABLE_FEAT_F4HWN_CTR": true,
                 "ENABLE_FEAT_F4HWN_RESCUE_OPS": false,
                 "ENABLE_FEAT_F4HWN_VOL": false,
-                "ENABLE_FEAT_F4HWN_RESET_CHANNEL": false,
+                "ENABLE_FEAT_F4HWN_AUDIO": false,
+                "ENABLE_FEAT_F4HWN_RESET_VFO": true,
                 "ENABLE_FEAT_F4HWN_PMR": false,
                 "ENABLE_FEAT_F4HWN_GMRS_FRS_MURS": false,
                 "ENABLE_FEAT_F4HWN_CA": true,
                 "ENABLE_FEAT_F4HWN_DEBUG": false,
-                "ENABLE_AM_FIX_SHOW_DATA": false,
                 "ENABLE_AGC_SHOW_DATA": false,
                 "ENABLE_UART_RW_BK_REGS": false,
-                "ENABLE_NAVIG_LEFT_RIGHT": true,
                 "ENABLE_SWD": false,
                 "VERSION_STRING_1": "v0.22",
-                "VERSION_STRING_2": "v4.3.2"
+                "VERSION_STRING_2": "v5.1.0"
             }
         },
         {
@@ -175,12 +174,10 @@
             }
         },
         {
-            "name": "ARDF-K5v3",
+            "name": "ARDF",
             "inherits": "default",
             "cacheVariables": {
                 "ENABLE_CUSTOM_MENU_LAYOUT": false,
-                "ENABLE_NAVIG_LEFT_RIGHT": false,
-                "ENABLE_AM_FIX": true,
                 "ENABLE_SPECTRUM": true,
                 "ENABLE_FMRADIO": true,
                 "ENABLE_VOX": true,
@@ -195,17 +192,9 @@
                 "ENABLE_PREVENT_TX": true,
                 "ENABLE_UART_RW_BK_REGS": true,
                 "EDITION_STRING": "ARDF",
-                "TARGET": "f4hwn.K5v3.ARDF",
+                "TARGET": "f4hwn.ARDF_K5v3_K1",
                 "AUTHOR_STRING_2": "DL9CAT",
-                "VERSION_STRING_2": "v0.1b"
-            }
-        },
-        {
-            "name": "ARDF-K1",
-            "inherits": "ARDF-K5v3",
-            "cacheVariables": {
-                "ENABLE_NAVIG_LEFT_RIGHT": true,
-                "TARGET": "f4hwn.K1.ARDF"
+                "VERSION_STRING_2": "v0.2a"
             }
         },
         {
@@ -221,6 +210,8 @@
                 "ENABLE_FEAT_F4HWN_PMR": true,
                 "ENABLE_FEAT_F4HWN_GMRS_FRS_MURS": true,
                 "ENABLE_FEAT_F4HWN_RESCUE_OPS": true,
+                "ENABLE_FEAT_F4HWN_VOL": true,
+                "ENABLE_FEAT_F4HWN_AUDIO": true,
                 "ENABLE_SWD": true,
                 "EDITION_STRING": "Fusion",
                 "TARGET": "f4hwn.fusion"
@@ -254,12 +245,8 @@
         },
 
         {
-            "name": "ARDF-K5v3",
-            "configurePreset": "ARDF-K5v3"
-        },
-        {
-            "name": "ARDF-K1",
-            "configurePreset": "ARDF-K1"
+            "name": "ARDF",
+            "configurePreset": "ARDF"
         },
         {
             "name": "Fusion",

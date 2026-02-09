@@ -30,9 +30,6 @@
 #include "ui/inputbox.h"
 #include "ui/main.h"
 #include "ui/ui.h"
-#ifdef ENABLE_AM_FIX
-   #include "am_fix.h"
-#endif
 
 
 
