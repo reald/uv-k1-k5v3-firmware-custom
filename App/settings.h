@@ -319,7 +319,7 @@ void     SETTINGS_FactoryReset(bool bIsAll);
 #endif
 
 #ifdef ENABLE_ARDF
-void SETTINGS_SaveARDF(void);
+    void SETTINGS_SaveARDF(void);
 #endif
 
 void SETTINGS_SaveVfoIndices(void);

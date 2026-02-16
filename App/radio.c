@@ -1071,7 +1071,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
             break;
         case MODULATION_AM:
 #ifdef ENABLE_ARDF
-            mod = BK4819_AF_AM; // use old setting because of less noise
+            mod = BK4819_AF_AM; // use old setting because of less noise for ARDF
 #else
             mod = BK4819_AF_FM; // AM no longer needs special AF setting
 #endif

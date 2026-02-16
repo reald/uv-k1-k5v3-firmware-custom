@@ -278,7 +278,8 @@ void UI_DisplayRSSIBar(const bool now)
     {
         line = 3;
     }
-#else
+#endif
+
     //char rx[4];
     //sprintf(String, "%d", RxBlink);
     //UI_PrintStringSmallBold(String, 80, 0, RxLine);
@@ -301,8 +302,6 @@ void UI_DisplayRSSIBar(const bool now)
         ST7565_BlitLine(RxLine);
     }
     */
-#endif
-
 #else
     const unsigned int line = 3;
 #endif

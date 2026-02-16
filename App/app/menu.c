@@ -218,12 +218,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
         case MENU_ARDF_NUMFOXES:
             *pMin = 0;
             *pMax = ARDF_NUM_FOX_MAX;
-                    break;
+            break;
 
         case MENU_ARDF_SETFOX:
             *pMin = 1;
             *pMax = MAX(1, gARDFNumFoxes);
-                    break;
+            break;
 
         case MENU_ARDF_GAIN_REMEMBER:
             *pMin = 0;
@@ -233,7 +233,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
         case MENU_ARDF_CYCLE_END_BEEP:
             *pMin = 0;
             *pMax = ARDF_CYCLE_END_BEEP_S_MAX;
-                    break;
+            break;
 
 #endif
 
@@ -1290,8 +1290,8 @@ void MENU_ShowCurrentSetting(void)
             break;
 
         case MENU_ARDF_CLOCK_CORR:
-                        gSubMenuSelection = gARDFClockCorrAddTicksPerMin;
-                        break;
+            gSubMenuSelection = gARDFClockCorrAddTicksPerMin;
+            break;
 #endif
 
 

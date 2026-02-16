@@ -57,16 +57,16 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
         }
         else { // released
 
-			if (
+            if (
 #ifdef ENABLE_FMRADIO
-				(gFmRadioMode && gScreenToDisplay != DISPLAY_FM) &&
+                (gFmRadioMode && gScreenToDisplay != DISPLAY_FM) &&
 #endif
 #if ENABLE_ARDF
-				(gScreenToDisplay != DISPLAY_ARDF) &&
+                (gScreenToDisplay != DISPLAY_ARDF) &&
 #endif
-				(gScreenToDisplay != DISPLAY_MAIN)
-			   )
-                return;
+                (gScreenToDisplay != DISPLAY_MAIN)
+               )
+                   return;
 
             gWasFKeyPressed = !gWasFKeyPressed; // toggle F function
 

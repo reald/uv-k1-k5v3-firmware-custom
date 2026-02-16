@@ -242,7 +242,7 @@ const uint8_t BITMAP_PowerUser[3] =
 
 #ifdef ENABLE_NOAA
 const uint8_t BITMAP_NOAA[12] =
-{	// "WX"
+{   // "WX"
     0b00000000,
     0b01111111,
     0b00100000,

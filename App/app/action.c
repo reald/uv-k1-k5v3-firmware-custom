@@ -704,7 +704,6 @@ void ACTION_Remove_Offset(void)
     gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
 }
 #endif
-
 #endif
 
 

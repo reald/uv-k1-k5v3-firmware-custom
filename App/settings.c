@@ -676,12 +676,13 @@ void SETTINGS_FactoryReset(bool bIsAll)
     PY25Q16_SectorErase(0x007000);
     PY25Q16_SectorErase(0x008000);
     PY25Q16_SectorErase(0x009000);
+    PY25Q16_SectorErase(0x00D000); // erase ARDF
+
     
     // 0d60 - 0e30
     if (bIsAll)
     {
         PY25Q16_SectorErase(0x00A000);
-        PY25Q16_SectorErase(0x00D000); // erase ARDF
     }
 
     // Prevent reset to restart in RO mode...

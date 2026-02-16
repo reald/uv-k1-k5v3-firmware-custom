@@ -95,6 +95,12 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 {
     uint8_t Vfo = gEeprom.TX_VFO;
 
+#ifdef ENABLE_ARDF
+    int8_t Direction = 1;
+    uint8_t Channel = gEeprom.ScreenChannel[Vfo];
+    uint8_t Next;
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
     if(gEeprom.MENU_LOCK == true) {
         if(Key == 2) { // Enable A/B only
@@ -106,12 +112,6 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 
         return; // prevent F function if MENU LOCK is true
     }
-#endif
-
-#ifdef ENABLE_ARDF
-    int8_t Direction = 1;
-    uint8_t Channel = gEeprom.ScreenChannel[Vfo];
-    uint8_t Next;
 #endif
 
     if (gScreenToDisplay == DISPLAY_MENU) {
@@ -315,15 +315,15 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
             }
 
             Next = RADIO_FindNextChannel(Channel + Direction, Direction, false, 0);
-            if (Next == 0xFF)
+            if (Next == 0xFFFF)
                 return;
             if (Channel == Next)
                 return;
             gEeprom.MrChannel[gEeprom.TX_VFO] = Next;
             gEeprom.ScreenChannel[gEeprom.TX_VFO] = Next;
 
-                    gRequestSaveVFO   = true;
-                    gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+            gRequestSaveVFO   = true;
+            gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
 
             break;
 
@@ -465,7 +465,7 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         {
             if ( (gScreenToDisplay == DISPLAY_MAIN)
 #ifdef ENABLE_ARDF
-                             || (gScreenToDisplay == DISPLAY_ARDF)
+                 || (gScreenToDisplay == DISPLAY_ARDF)
 #endif
                )
             {

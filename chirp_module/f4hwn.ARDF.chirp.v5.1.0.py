@@ -316,7 +316,7 @@ u8 ENABLE_DTMF_CALLING:1,
    ENABLE_VOICE:1,
    ENABLE_NOAA:1,
    ENABLE_FMRADIO:1;
-u8 __UNUSED13:1,
+u8 ENABLE_ARDF:1,
    ENABLE_FEAT_F4HWN_RESCUE_OPS:1,
    ENABLE_BANDSCOPE:1,
    ENABLE_AM_FIX:1,
@@ -434,8 +434,6 @@ struct {
     #seekto 0x00B18E;
     u8 volumeGain;
     u8 dacGain;
-
-
 } cal;
 
 
@@ -1901,9 +1899,6 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 #            elif elname == "upload_calibration":
 #                self._upload_calibration = bool(element.value)
 
-            elif element.changed() and elname.startswith("_mem.cal."):
-                exec(elname + " = element.value.get_value()")
-
             elif elname == "ARDFEnable":
                 _mem.ARDFEnable = element.value
 
@@ -1930,6 +1925,9 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 
             elif elname == "ARDFMistuneAddGainIdxSteps":
                 _mem.ARDFMistuneAddGainIdxSteps = element.value
+
+            elif element.changed() and elname.startswith("_mem.cal."):
+                exec(elname + " = element.value.get_value()")
 
     def get_settings(self):
         _mem = self._memobj
@@ -1986,7 +1984,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         top.append(radio_firmware)
         top.append(basic)
         top.append(advanced)
-        top.append(ardf)
+        if _mem.BUILD_OPTIONS.ENABLE_ARDF:
+            top.append(ardf)
         top.append(keya)
         top.append(dtmf)
 #        if _mem.BUILD_OPTIONS.ENABLE_DTMF_CALLING:
@@ -2020,7 +2019,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             has_rescue_ops = self._memobj.BUILD_OPTIONS.ENABLE_FEAT_F4HWN_RESCUE_OPS
             has_game = self._memobj.BUILD_OPTIONS.ENABLE_FEAT_F4HWN_GAME
             has_vox = self._memobj.BUILD_OPTIONS.ENABLE_VOX
-            
+            has_ardf = self._memobj.BUILD_OPTIONS.ENABLE_ARDF
+
             lst = KEYACTIONS_LIST.copy()
             lst.remove("BACKLIGHT") # Only for key press on TX
             lst.remove("BL_MIN_TMP_OFF")
@@ -2038,6 +2038,9 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
                 lst.remove("REMOVE OFFSET")
             if not has_vox:
                 lst.remove("MUTE")
+            if not has_ardf:
+                lst.remove("ARDF Mode on/off")
+                lst.remove("ARDF Gain to middle")
 
             action_num = int(action_num)
             if action_num >= len(KEYACTIONS_LIST) or \
@@ -3266,15 +3269,16 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 #            advanced.append(pswd_setting)
 
         # ARDF 
-        ardf.append(ARDFEnable_setting)
-        ardf.append(ARDFDFSimpleMode_setting)
-        ardf.append(ARDFFoxDuration_setting)
-        ardf.append(ARDFClockCorrTicksMin_setting)
-        ardf.append(ARDFNumFoxes_setting)
-        ardf.append(ARDFGainRemember_setting)
-        ardf.append(ARDFCycleEndBeep_s_setting)
-        ardf.append(ARDFMistuneFreqRaw_setting)
-        ardf.append(ARDFMistuneAddGainIdxSteps_setting)
+        if _mem.BUILD_OPTIONS.ENABLE_ARDF:
+            ardf.append(ARDFEnable_setting)
+            ardf.append(ARDFDFSimpleMode_setting)
+            ardf.append(ARDFFoxDuration_setting)
+            ardf.append(ARDFClockCorrTicksMin_setting)
+            ardf.append(ARDFNumFoxes_setting)
+            ardf.append(ARDFGainRemember_setting)
+            ardf.append(ARDFCycleEndBeep_s_setting)
+            ardf.append(ARDFMistuneFreqRaw_setting)
+            ardf.append(ARDFMistuneAddGainIdxSteps_setting)
 
 #        if _mem.BUILD_OPTIONS.ENABLE_DTMF_CALLING:
 #            dtmf.append(sep_code_setting)
