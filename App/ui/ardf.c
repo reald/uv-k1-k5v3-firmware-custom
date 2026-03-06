@@ -245,11 +245,11 @@ void UI_DisplayARDF_FreqCh(void)
 
       if ( gInputBoxIndex == 0 )
       {
-         sprintf(buffer, "M %03u", gEeprom.ScreenChannel[vfo] + 1);
+         sprintf(buffer, "M %04u", gEeprom.ScreenChannel[vfo] + 1);
       }
       else
       {
-         sprintf(buffer, "M%.3s", INPUTBOX_GetAscii() );  // show the input text
+         sprintf(buffer, "M %.4s", INPUTBOX_GetAscii() );  // show the input text
       }
 
       if ( gARDFDFSimpleMode==0 )
