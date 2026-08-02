@@ -51,8 +51,19 @@ typedef struct
 
 
 
+typedef enum
+{
+   ARDF_NO_GAIN_CHEAT,
+   ARDF_INT_LNA_OFF,
+   ARDF_HARMONIC_2,
+   ARDF_HARMONIC_3
+} t_ardf_gain_cheat_type;
+
+
+
 extern t_ardf_gain_table     ardf_gain_table[];
 extern uint8_t               ardf_gain_index[2][ARDF_NUM_FOX_MAX];
+extern t_ardf_gain_cheat_type ardf_type_gain_cheat[2][ARDF_NUM_FOX_MAX];
 
 extern uint32_t              gARDFTime10ms;
 extern uint32_t              gARDFFoxDuration10ms;
@@ -67,6 +78,8 @@ extern unsigned int          gARDFRssiMax;
 extern uint8_t               gARDFMemModeFreqToggleCnt_s;
 extern bool                  gARDFRequestSaveEEPROM;
 extern int16_t               gARDFClockCorrAddTicksPerMin;
+extern uint32_t              gARDFGainCheatBaseFrequency[2];
+
 #ifdef ARDF_ENABLE_SHOW_DEBUG_DATA
 extern int16_t               gARDFdebug;
 extern int16_t               gARDFdebug2;
@@ -84,8 +97,13 @@ extern bool ARDF_ActVfoHasGainRemember(uint8_t vfo);
 extern void ARDF_ActivateGainIndex(void);
 extern int32_t ARDF_GetRestTime_s(void);
 extern int8_t ARDF_Get_GainDiff(void);
+extern void ARDF_DoGainCheat(void);
+extern void ARDF_UndoGainCheat(void);
+extern void ARDF_StopGainCheatFox(void);
+extern void ARDF_StopGainCheatVfo(void);
+extern void ARDF_DisableGainCheat(void);
+extern t_ardf_gain_cheat_type ARDF_ActiveGainCheatType(uint8_t vfo);
 
+#endif // /ENABLE_ARDF
 
-#endif
-
-#endif
+#endif // /APP_ARDF_H

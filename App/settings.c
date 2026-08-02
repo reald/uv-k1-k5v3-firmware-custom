@@ -769,6 +769,7 @@ void SETTINGS_SaveFM(void)
 #endif
 
 
+
 #ifdef ENABLE_ARDF
 
 // 0F20..0F2F
@@ -804,6 +805,7 @@ void SETTINGS_SaveARDF(void)
 }
 
 #endif
+
 
 
 void SETTINGS_SaveVfoIndices(void)

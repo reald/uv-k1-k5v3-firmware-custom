@@ -1,4 +1,4 @@
-/* Copyright 2024 Dennis Real
+/* Copyright 2024, 2025, 2026 Dennis Real
  * https://github.com/reald
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,10 @@
 #define UI_ARDF_H
 
 #ifdef ENABLE_ARDF
-extern void UI_DisplayARDF_RSSIBar_Simple(void);
+extern void UI_DisplayARDF_RSSIBar_Simple(bool updatenow);
 extern void UI_DisplayARDF_Timer(void);
-extern void UI_DisplayARDF_RSSI(void);
-extern void UI_DisplayARDF_FreqCh(void);
+extern void UI_DisplayARDF_RSSI(bool updatenow);
+extern void UI_DisplayARDF_FreqCh(bool updatenow);
 extern void UI_DisplayARDF(void);
 
 #ifdef ARDF_ENABLE_SHOW_DEBUG_DATA

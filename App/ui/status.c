@@ -72,7 +72,8 @@ static void UI_DisplayStatus_ARDF()
     uint8_t     *line = gStatusLine;
     unsigned int x    = 0;
 
-    if ( gScreenToDisplay == DISPLAY_MENU )
+    if ( (gScreenToDisplay == DISPLAY_MENU)
+         && (gARDFNumFoxes > 0) )
     {
         char buf[10];
         uint8_t activefox = gARDFActiveFox + 1;
@@ -84,7 +85,7 @@ static void UI_DisplayStatus_ARDF()
         sprintf(buf, "F%d %d", activefox, resttime);
         UI_PrintStringSmallBufferBold(buf, line + 32);
     }
-    else
+    else if ( gScreenToDisplay == DISPLAY_ARDF )
     {
         UI_PrintStringSmallBufferBold("ARDF", line + 32);
     }

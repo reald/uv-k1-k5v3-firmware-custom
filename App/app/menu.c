@@ -594,13 +594,14 @@ void MENU_AcceptSetting(void)
 
             if ( gSubMenuSelection == 2 )
             {
-                // DF simple mode implies ARDF on
+                // DF simple mode implies ARDF on. set normal ARDF bit to on, too
                 gSubMenuSelection = 3;
 
                 // DF simple settings
                 gARDFNumFoxes = 0;
                 gARDFGainRemember = 0;
                 gEeprom.SQUELCH_LEVEL = 0;
+                ARDF_DisableGainCheat();
             }
 
             if ( (gSubMenuSelection & 0x01) != 0 )
@@ -622,6 +623,8 @@ void MENU_AcceptSetting(void)
             if ( ((gSetting_ARDFEnable & 0x01) + (gARDFDFSimpleMode << 1)) != gSubMenuSelection )
             {
                 // value changed
+                ARDF_DisableGainCheat(); // always disable gain cheat if ardf mode is changed
+
                 gSetting_ARDFEnable = gSubMenuSelection & 0x01;
                 gARDFDFSimpleMode = (gSubMenuSelection >> 1) & 0x01;
 
@@ -673,6 +676,9 @@ void MENU_AcceptSetting(void)
             {
                 // value updated
                 gARDFGainRemember = gSubMenuSelection;
+
+                // disable gain cheat if gain remember is switched. could be more precise but (too) many cases to be covered.
+                ARDF_DisableGainCheat();
 
                 gARDFRequestSaveEEPROM = true;
             }

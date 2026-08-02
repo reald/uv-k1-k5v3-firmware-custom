@@ -41,6 +41,10 @@
 #include "menu.h"
 #include "ui.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 
 const t_menu_item MenuList[] =
 {
@@ -64,6 +68,7 @@ const t_menu_item MenuList[] =
     {"GainRe",      MENU_ARDF_GAIN_REMEMBER },
     {"EndSig",      MENU_ARDF_CYCLE_END_BEEP },
     {"ClkCor",      MENU_ARDF_CLOCK_CORR },
+    {"SetNav",      MENU_SET_NAV       }, // set navigation (LEFT / RIGHT or UP / DOWN)
 #endif
 
 #ifndef ENABLE_FEAT_F4HWN
@@ -519,7 +524,7 @@ const t_sidefunction gSubMenu_SIDEFUNCTIONS[] =
     #endif
 #endif
 #ifdef ENABLE_ARDF
-    {"ARDF\noff/on",    ACTION_OPT_ARDF_ON_OFF},
+    {"ARDF\noff/on", ACTION_OPT_ARDF_ON_OFF},
     {"ARDF\nSet\nMed.Gain", ACTION_OPT_ARDF_GAIN_MIDDLE},
 #endif
 };

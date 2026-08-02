@@ -706,6 +706,7 @@ void ACTION_ARDFOnOff(void)
 {
     if ( gSetting_ARDFEnable )
     {
+        ARDF_DisableGainCheat();
         gSetting_ARDFEnable = false;
     }
     else
@@ -717,6 +718,7 @@ void ACTION_ARDFOnOff(void)
     gARDFRequestSaveEEPROM = true;
 
 }
+
 
 
 void ACTION_ARDFGainMiddle(void)
@@ -732,7 +734,15 @@ void ACTION_ARDFGainMiddle(void)
             activefox = 0;
         }
 
-        ardf_gain_index[vfo][activefox] = ARDF_GAIN_INDEX_MIDDLE;
+        if ( ARDF_ActiveGainCheatType(vfo) != ARDF_NO_GAIN_CHEAT )
+        {
+            // gain cheat active. disable it and go to gain index 0
+            ARDF_StopGainCheatFox();
+        }
+        else
+        {
+            ardf_gain_index[vfo][activefox] = ARDF_GAIN_INDEX_MIDDLE;
+        }
 
         ARDF_ActivateGainIndex();
 

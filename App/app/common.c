@@ -5,6 +5,10 @@
 #include "settings.h"
 #include "ui/ui.h"
 
+#ifdef ENABLE_ARDF
+#include "app/ardf.h"
+#endif
+
 void COMMON_KeypadLockToggle() 
 {
 
@@ -27,6 +31,17 @@ void COMMON_SwitchVFOs()
 #ifdef ENABLE_SCAN_RANGES    
     gScanRangeStart = 0;
 #endif
+
+#ifdef ENABLE_ARDF
+
+    // vfo switch. undo gain cheat before if active
+    if ( (gSetting_ARDFEnable)
+         && (ARDF_ActiveGainCheatType(gEeprom.RX_VFO) != ARDF_NO_GAIN_CHEAT) )
+    {
+        ARDF_UndoGainCheat(); // only undo the frequency shift. if mistune has to be done for the new vfo a waiting time has to be ensured. this is all done in ARDF_10ms() fixme
+    }
+#endif
+
     gEeprom.TX_VFO ^= 1;
 
     if (gEeprom.CROSS_BAND_RX_TX != CROSS_BAND_OFF)
@@ -34,8 +49,8 @@ void COMMON_SwitchVFOs()
     if (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
         gEeprom.DUAL_WATCH = gEeprom.TX_VFO + 1;
 
-    gRequestSaveSettings  = 1;
-    gFlagReconfigureVfos  = true;
+    gRequestSaveSettings = 1;
+    gFlagReconfigureVfos = true;
     gScheduleDualWatch = true;
 
     gRequestDisplayScreen = DISPLAY_MAIN;
@@ -55,6 +70,11 @@ void COMMON_SwitchVFOMode()
     if (gEeprom.VFO_OPEN)
 #endif
     {
+
+#ifdef ENABLE_ARDF
+        ARDF_StopGainCheatVfo(); // new frequency/memory on this VFO: disable gain cheat on this vfo
+#endif
+
         if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE))
         {   // swap to frequency mode
             gEeprom.ScreenChannel[gEeprom.TX_VFO] = gEeprom.FreqChannel[gEeprom.TX_VFO];

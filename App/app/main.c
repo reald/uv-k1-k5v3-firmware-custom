@@ -231,7 +231,7 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 
             gBackup_CROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
             gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-            gUpdateStatus            = true;        
+            gUpdateStatus            = true;
             if (beep)
                 gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 
@@ -308,6 +308,9 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 
                     if ( Key == KEY_DOWN )
                         Direction = -1;
+
+                    // stop gain cheat if active
+                    ARDF_StopGainCheatVfo(); // new frequency on this vfo, disable gain cheat on this vfo
 
                     if (IS_FREQ_CHANNEL(Channel)) { // step/down in frequency
                         const uint32_t frequency = APP_SetFrequencyByStep(gTxVfo, Direction);
@@ -596,6 +599,10 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
             gKeyInputCountdown = (key_input_timeout_500ms / 4); // short time...
 
+            #ifdef ENABLE_ARDF
+                ARDF_StopGainCheatVfo(); // new channel on this vfo. disable gain cheat on this vfo
+            #endif
+
             #ifdef ENABLE_VOICE
                 gAnotherVoiceID   = (VOICE_ID_t)Key;
             #endif
@@ -647,6 +654,10 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
             }
 
             uint32_t Frequency = inputFreq * 100;
+
+            #ifdef ENABLE_ARDF
+                ARDF_StopGainCheatVfo(); // new frequency on this vfo. disable gain cheat on this vfo
+            #endif
 
             // clamp the frequency entered to some valid value
             if (Frequency < frequencyBandTable[0].lower) {

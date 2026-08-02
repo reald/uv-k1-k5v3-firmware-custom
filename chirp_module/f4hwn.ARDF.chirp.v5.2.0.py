@@ -54,7 +54,7 @@ DEBUG_SHOW_OBFUSCATED_COMMANDS = False
 DEBUG_SHOW_MEMORY_ACTIONS = False
 
 # TODO: remove the driver version when it's in mainline chirp 
-DRIVER_VERSION = "Quansheng UV-K1 / UV-K5 V3 driver ver: 2026/02/05 (c) F4HWN v5.1.0"
+DRIVER_VERSION = "Quansheng UV-K1 / UV-K5 V3 driver ver: 2026/02/27 (c) F4HWN v5.2.0"
 FIRMWARE_VERSION_UPDATE = "https://github.com/armel/uv-k1-k5v3-firmware-custom/releases"
 CHIRP_DRIVER_VERSION_UPDATE = "https://github.com/armel/uv-k1-k5v3-chirp-driver/releases"
 
@@ -117,8 +117,14 @@ struct {
      compander:2,
      band:3;
   u8 scanlist;
-} ch_attr[1038];
+} ch_attr[1031];
 
+// --------------------
+
+#seekto 0x00880E;
+struct {
+    char name[4];
+} listname[24];
 
 // --------------------
 
@@ -226,8 +232,7 @@ ul32 password;
 
 #seekto 0x00A0B8;
 u8 voice;
-u8 s0_level;
-u8 s9_level;
+i8 dbm_corr[7];
 
 // --------------------
 
@@ -440,10 +445,7 @@ struct {
 // --------------------
 
 #seekto 0x00D000;
-i8 ARDFMistuneFreqRaw;
-u8 ARDFMistuneAddGainIdxSteps;
-u8 ARDFfree;
-u8 ARDFfree2;
+ul32 ARDFfree0;
 ul32 ARDFFoxDuration;
 il16 ARDFClockCorrTicksMin;
 u8 ARDFDFSimpleMode:1,
@@ -451,7 +453,7 @@ u8 ARDFDFSimpleMode:1,
    ARDFNumFoxes:4,
    ARDFEnable:1;
 u8 ARDFCycleEndBeep_s;
-ul32 ARDFfree3;
+ul32 ARDFfree1;
 
 
 """
@@ -733,13 +735,13 @@ KEYACTIONS_LIST = ["NONE",
                    "BACKLIGHT",
                    "MUTE",
                    "RxA",
+                   "POWER HIGH",
+                   "REMOVE OFFSET",
                    "ARDF Mode on/off",
                    "ARDF Gain to middle",
-                   "POWER HIGH",
-                   "REMOVE OFFSET"
                   ]
 
-MIC_GAIN_LIST = ["+1.1dB", "+4.0dB", "+8.0dB", "+12.0dB", "+15.1dB"]
+MIC_GAIN_LIST = ["+1.5dB", "+4.0dB", "+8.0dB", "+12.0dB", "+16.0dB", "+20.0dB", "+24.0dB", "+28.0dB", "+31.5dB"]
 
 ARDFGainRemember_LIST = ["off", "VFO A", "VFO B", "Both"]
 
@@ -994,7 +996,7 @@ def do_upload(radio):
             status.cur = 0
             status.msg = "Uploading calibration"
             radio.status_fn(status)
-            
+
         else:
             break  # done
 
@@ -1057,6 +1059,9 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 # this change to send power level chan in the calibration but under macos it give error
 # bugfix calibration : put in comment next line: upload_calibration = False
     upload_calibration = False
+
+# advanced settings too
+    upload_advanced = False
 
     def _get_bands(self):
         is_wide = self._memobj.BUILD_OPTIONS.ENABLE_WIDE_RX \
@@ -1647,7 +1652,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 
             # Set nav
             elif elname == "set_nav":
-                _mem.set_nav = int(element.value)
+                if self.upload_advanced:
+                    _mem.set_nav = int(element.value)
 
             # Auto keypad lock
             elif elname == "auto_keypad_lock":
@@ -1661,11 +1667,10 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             elif elname == "voice":
                 _mem.voice = int(element.value)
 
-            elif elname == "s0_level":
-                _mem.s0_level = -int(element.value)
-
-            elif elname == "s9_level":
-                _mem.s9_level = -int(element.value)
+            elif elname.startswith("dbm_corr_"):
+                if self.upload_advanced:
+                    i = int(elname.split("_")[-1])
+                    _mem.dbm_corr[i] = int(element.value)
 
 #            elif elname == "password":
 #                if element.value.get_value() is None or element.value == "":
@@ -1727,7 +1732,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 
             # battery type
             elif elname == "Battery_type":
-                _mem.Battery_type = int(element.value)
+                if self.upload_advanced:
+                    _mem.Battery_type = int(element.value)
 
             # set low_power f4hwn
             elif elname == "set_pwr":
@@ -1879,6 +1885,22 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             elif elname == "slPriorCh2":
                 _mem.sl.slPriorCh2 = int(element.value)
 
+            elif elname.startswith("listname"):
+                idx = int(elname.replace("listname", ""))
+                if 0 <= idx < (MR_CHANNELS_LIST - 1):
+                    val_str = str(element.value).strip()
+                    
+                    if val_str:  # Si non vide
+                        val_bytes = val_str.encode('ascii', 'ignore')[:3]
+                        # Pad avec 0xFF comme le firmware
+                        val_bytes = val_bytes + b'\xFF' * (4 - len(val_bytes))
+                    else:  # Si vide, remplir avec 0xFF
+                        val_bytes = b'\xFF' * 4
+                        
+                    _mem.listname[idx].name = val_bytes
+
+            # Shortcuts
+
             if elname == "key1_shortpress_action":
                 _mem.key1_shortpress_action = KEYACTIONS_LIST.index(element.value)
 
@@ -1919,12 +1941,6 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
                 
             elif elname == "ARDFCycleEndBeep_s":
                 _mem.ARDFCycleEndBeep_s = element.value
-
-            elif elname == "ARDFMistuneFreqRaw":
-                _mem.ARDFMistuneFreqRaw = element.value
-
-            elif elname == "ARDFMistuneAddGainIdxSteps":
-                _mem.ARDFMistuneAddGainIdxSteps = element.value
 
             elif element.changed() and elname.startswith("_mem.cal."):
                 exec(elname + " = element.value.get_value()")
@@ -2276,6 +2292,39 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         rs = RadioSetting("slPriorCh2", "List 1 Priority Channel 2", val)
         rs.set_doc('List 1 priority channel 2: Select the channel you want for priority')
         scanl.append(rs)
+
+        # List names (24 entries)
+        for i in range(MR_CHANNELS_LIST - 1):
+            # Get the character array object from memory
+            name_obj = _mem.listname[i].name
+            
+            valid_bytes = []
+            # Iterate through each element in the character array
+            for char_element in name_obj:
+                # Explicitly cast the charDataElement to an integer to avoid TypeError
+                val = int(char_element)
+                
+                # Filter for printable ASCII characters only (32-126)
+                if 32 <= val <= 126:
+                    valid_bytes.append(val)
+            
+            # Decode the valid bytes to a string and strip whitespace
+            listname = bytes(valid_bytes).decode('ascii', errors='ignore').strip()
+
+            # Create the CHIRP setting object
+            val = RadioSettingValueString(0, 3, listname)
+            listname_setting = RadioSetting(
+                f"listname{i}", 
+                f"Scan List Name {i+1}", 
+                val
+            )
+            listname_setting.set_doc(
+                f'Name for scan list {i+1}\n'
+                f'Maximum 3 characters'
+            )
+            scanl.append(listname_setting)
+
+    # basic.append(listname_setting)
 
         # ----------------- Basic settings
 
@@ -2658,33 +2707,26 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         val = RadioSettingValueInteger(0, 30, tmp_ARDFCycleEndBeep_s)
         ARDFCycleEndBeep_s_setting = RadioSetting("ARDFCycleEndBeep_s", "ARDF End of Fox Cycle Tone Signal Time Position [s, 0=off] (EndSig)", val)
 
-        tmp_ARDFMistuneFreqRaw = _mem.ARDFMistuneFreqRaw
-        val = RadioSettingValueInteger(-128, 127, tmp_ARDFMistuneFreqRaw)
-        ARDFMistuneFreqRaw_setting = RadioSetting("ARDFMistuneFreqRaw", "ARDF Mistune Offset Frequency [200 Hz] (MstFrq)", val)
-
-        tmp_ARDFMistuneAddGainIdxSteps = _mem.ARDFMistuneAddGainIdxSteps
-        val = RadioSettingValueInteger(0, 8, tmp_ARDFMistuneAddGainIdxSteps)
-        ARDFMistuneAddGainIdxSteps_setting = RadioSetting("ARDFMistuneAddGainIdxSteps", "ARDF Mistune Additional Gain Index Steps (MstStp)", val)
-
         # ----------------- Extra settings
 
-        # S-meter
-        tmp_s0 = -int(_mem.s0_level)
-        tmp_s9 = -int(_mem.s9_level)
+       # Upload Advanced Settings checkbox
+        val = RadioSettingValueBoolean(False)
 
-        if tmp_s0 not in range(-200, -91) or tmp_s9 not in range(-160, -51) \
-           or tmp_s9 < tmp_s0+9:
+        def validate_upload_advanced(value):
+            if value and not self.upload_advanced:
+                msg = "This will overwrite advanced settings on the radio."
+                ret = wx.MessageBox(msg, "Warning", wx.OK | wx.CANCEL |
+                                    wx.CANCEL_DEFAULT | wx.ICON_WARNING)
+                value = ret == wx.OK
+            self.upload_advanced = value
+            return value
 
-            tmp_s0 = -130
-            tmp_s9 = -76
-        val = RadioSettingValueInteger(-200, -90, tmp_s0)
-        s0_level_setting = RadioSetting("s0_level", "S-Meter S0 Level (dBm)", val)
-        s0_level_setting.set_doc('S-meter S0 level (dBm): To set the level calibration for S0')
-
-        val = RadioSettingValueInteger(-160, -50, tmp_s9)
-        s9_level_setting = RadioSetting("s9_level", "S-Meter S9 Level (dBm)", val)
-        s9_level_setting.set_doc('S-meter S9 level (dBm): To set the level calibration for S9')
-
+        val.set_validate_callback(validate_upload_advanced)
+        rs = RadioSetting("upload_advanced", "Upload Advanced Settings", val)
+        rs.set_doc('Check this box to upload the advanced settings to the radio.\n'
+                   'Covers: Battery Type, Navigation, S-meter corrections.\n'
+                   'Leave unchecked to preserve existing values on the radio.')
+        advanced.append(rs)
 
         # Battery Type
         tmpbtype = list_def(_mem.Battery_type, BATTYPE_LIST, 0)
@@ -2692,6 +2734,25 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         bat_type_setting = RadioSetting("Battery_type", "Battery Type (BatTyp)", val)
         bat_type_setting.set_doc('BatTyp: What type of battery the radio is using, this affect\n' + \
                                  'the level value of the battery on the display')
+
+        advanced.append(bat_type_setting)
+        advanced.append(SetMenuNavSetting)
+
+        # S-meter dBm correction per band
+        dBmCorrDefault = [-15, -16, -10, -4, -7, -6, -1]
+        band_names = ["Band 1: < 108 MHz", "Band 2: 108 - 137 MHz", "Band 3: 137 - 174 MHz",
+                      "Band 4: 174 - 350 MHz", "Band 5: 350 - 400 MHz", "Band 6: 400 - 470 MHz", "Band 7: > 470 MHz"]
+
+        for i, (name, default) in enumerate(zip(band_names, dBmCorrDefault)):
+            tmp = int(_mem.dbm_corr[i])
+            if tmp not in range(-64, 64):
+                tmp = default
+            val = RadioSettingValueInteger(-64, 64, tmp)
+            rs = RadioSetting(f"dbm_corr_{i}", f"S-meter correction {name} (dBm)", val)
+            rs.set_doc(f'S-meter dBm correction for {name}.\n'
+                       f'Default: {default} dBm.\n'
+                       f'Inject -93 dBm and adjust until display reads -93 dBm.')
+            advanced.append(rs)
 
 
         # Power on password
@@ -3262,9 +3323,6 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         basic.append(keypad_lock_setting)
 
 #        advanced.append(freq_mode_allowed_setting)
-        advanced.append(bat_type_setting)
-        advanced.append(s0_level_setting)
-        advanced.append(s9_level_setting)
 #        if _mem.BUILD_OPTIONS.ENABLE_PWRON_PASSWORD:
 #            advanced.append(pswd_setting)
 
@@ -3277,8 +3335,6 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             ardf.append(ARDFNumFoxes_setting)
             ardf.append(ARDFGainRemember_setting)
             ardf.append(ARDFCycleEndBeep_s_setting)
-            ardf.append(ARDFMistuneFreqRaw_setting)
-            ardf.append(ARDFMistuneAddGainIdxSteps_setting)
 
 #        if _mem.BUILD_OPTIONS.ENABLE_DTMF_CALLING:
 #            dtmf.append(sep_code_setting)
