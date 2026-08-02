@@ -167,7 +167,7 @@ active fox (3), seconds left in this fox cycle (5), chosen gain index (10) and t
 
 The manual gain index value can be chosen with UP/DOWN keys. Smaller values mean more attenuation. Use smaller values if you get closer to a transmitter. 
 
-Since the V3 has less attenuation dynamic than its predecessors, negative gain indexes were introduced:
+Because hardware version 3 has less attenuation dynamic than its predecessors, negative gain indexes were introduced:
   * -1 disables the input LNA
   * -2 and -3 tune to the second/third harmonic frequency (if the radio can receive this range)
 
