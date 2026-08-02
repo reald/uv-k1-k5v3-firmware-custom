@@ -44,23 +44,23 @@ Version 1 devices have no version label, version 2 has "V2", version 3 has "V3" 
 ### Hardware version 1:
 * FCC ID "XBPUV-K5"
 * Quansheng UV-K5 version 1 :white_check_mark:
-* Quansheng UV-K5+ ("UV-5R PLUS") version 1 :white_check_mark:
-* Quansheng UV-K5(8) version 1 :white_check_mark:/ Quansheng UV-K6 version 1 :white_check_mark:
-* Quansheng UV-K5(99) version 1 :white_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 1](https://github.com/reald/uv-k5-firmware-custom/releases) :heavy_check_mark:
+* Quansheng UV-K5+ ("UV-5R PLUS") version 1 :heavy_check_mark:
+* Quansheng UV-K5(8) version 1 :heavy_check_mark:/ Quansheng UV-K6 version 1 :heavy_check_mark:
+* Quansheng UV-K5(99) version 1 :heavy_check_mark:
+* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 1](https://github.com/reald/uv-k5-firmware-custom/releases) :white_check_mark:
 
 
 ### Hardware version 2:
 * FCC ID "XBPUV-K5"
-* Quansheng UV-K5(8) / UV-K5(99) (with FCC ID "XBPUV-K5") version 2 :white_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 2](https://codeberg.org/DL9CAT/uv-k5-firmware-custom_v2/releases) :heavy_check_mark:
+* Quansheng UV-K5(8) / UV-K5(99) (with FCC ID "XBPUV-K5") version 2 :heavy_check_mark:
+* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 2](https://codeberg.org/DL9CAT/uv-k5-firmware-custom_v2/releases) :white_check_mark:
 
 
 ### Hardware version 3:
 * FCC ID "XBPUV-K5"
-* Quansheng UV-K5(8) / UV-K5(99) version 3 :white_check_mark:
-* Quansheng UV-K1 / UV-K1(8) :white_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :heavy_check_mark:
+* Quansheng UV-K5(8) / UV-K5(99) version 3 :heavy_check_mark:
+* Quansheng UV-K1 / UV-K1(8) :heavy_check_mark:
+* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :white_check_mark:
 
 NOT COMPATIBLE:
 * Quansheng TK-11 / TK-11(8) :x:
@@ -69,14 +69,14 @@ NOT COMPATIBLE:
 
 ## ARDF Features Manual
 
-Download a precompiled release for your [hardware version](#compatible-devices).
+Download a precompiled release in the project repository for your [hardware version](#compatible-devices).
 
 
 ## Firmware Flashing
 
 ### Preparation
 You need a quansheng programming cable with an integrated USB to serial converter. Most baofeng cables are working fine, too. 
-Since hardware version 3 the devices can be flashed with an USB-C cable, too.
+Since hardware version 3 the devices can be flashed with a standard USB-C cable, too.
 
 1. Find out which hardware version do you have and which firmware do you need for it. See [compatible devices](#compatible-devices).
 1. Backup your settings!
@@ -112,13 +112,13 @@ Since hardware version 3 the devices can be flashed with an USB-C cable, too.
 
 ### Draussenfuchs Quick Setup ###
 
-1. Turn the power knob at least 90° to switch the device on. 
+1. Turn the power knob at least 90° to 120° to switch the device on. 
 1. Draussenfuchs Mode can be enabled in the menu (ARDF = "DF Simple"). This enables **manual gain control** 
 stepping by pressing **UP/DOWN keys**. Smaller values have lower sensitivity. Use this close to loud transmitters.
 "DF Simple" mode automatically preconfigures the most important settings.
 1. Set frequency stepping to 1 kHz. (Menu: Step = 1.00kHz)
 1. Select amplitude demodulation (Menu: Demodu = AM)
-1. Enter frequency (Main Screen: 433920 for 433.92 MHz)
+1. Enter frequency (Main Screen: 433920 for 433.920 MHz)
 
 That's it.
 
@@ -160,7 +160,7 @@ Modify with UP/DOWN key in 0.1s steps or enter value as *5 digit number* in 1/10
 
 #### Main ARDF Screen ####
 
-<img src="images/ardf_screen.jpg" width=800 />
+<img src="images/ardf_screen.png" width=800 />
 
 This pictures shows the radio screen if ARDF mode is enabled. The battery voltage is 7.96V. The second (big) line shows
 active fox (3), seconds left in this fox cycle (5), chosen gain index (10) and the raw received signal strength (083).
@@ -170,6 +170,7 @@ The manual gain index value can be chosen with UP/DOWN keys. Smaller values mean
 Since the V3 has less attenuation dynamic than its predecessors, negative gain indexes were introduced:
   * -1 disables the input LNA
   * -2 and -3 tune to the second/third harmonic frequency (if the radio can receive this range)
+
 All methods give you a huge additional attenuation to prevent overdriving the receiver. Be aware that the radiation pattern of your antenna
 might be different when receiving harmonics.
 
@@ -235,11 +236,11 @@ It is recommended to configure "Switch VFO" to F1 short (menu F1Shrt).
 
 
 #### Chirp ####
-There is a [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) driver in folder [chirp_module/](chirp_module/) for this firmware. 
-The radio (including ARDF settings) can be programmed only with this driver and not with the standard UV-Kx driver.
+There is a [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) module along with the release and in the folder [chirp_module/](chirp_module/). 
+The radio (including ARDF settings) can be programmed only with this module and not with the standard UV-Kx chirp module.
 
 #### Notes ####
-* The lowest possible frequency of the receiver chip is 18 MHz. So this is NOT usable on 80 m without hardware modifications.
+* The lowest possible frequency of the receiver chip is 18 MHz. So this is NOT usable on 80 m.
 * In ARDF mode any TX functionality is disabled. However it is recommended to compile with ENABLE_PREVENT_TX=1 to 
 permanently disable TX. This is done for official releases. ARDF receivers with a builtin TX functionality are not permitted 
 in official competitions anyway. 
