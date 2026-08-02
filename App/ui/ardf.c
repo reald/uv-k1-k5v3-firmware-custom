@@ -123,7 +123,7 @@ void UI_DisplayARDF_RSSIBar_Simple(bool updatenow)
 
    uint8_t level, level_max;
    uint8_t *p_line = gFrameBuffer[line];
- 
+
    level = UI_ARDF_dBm2level( BK4819_GetRSSI_dBm() );
    level_max = UI_ARDF_dBm2level( (gARDFRssiMax / 2) - 160 );
 
@@ -161,18 +161,18 @@ void UI_DisplayARDF_Timer(void)
       return;
 
    int32_t resttime = ARDF_GetRestTime_s();
-   
+
    if ( resttime <= 99 )
-   { 
+   {
       sprintf(buffer, "-%02u", resttime );
    }
    else
    {
       sprintf(buffer, "%3u", resttime );
    }
-   
+
    UI_DisplayFrequency(buffer, 12, 0, false);
-   
+
    // note: ST7565_BlitLine(0/1) for this screen update is called in UI_DisplayARDF_RSSI()
 }
 
@@ -191,7 +191,7 @@ void UI_DisplayARDF_RSSI(bool updatenow)
    if ( updatenow != false )
    {
       ST7565_BlitLine(0);
-      ST7565_BlitLine(1); 
+      ST7565_BlitLine(1);
    }
 }
 
@@ -224,7 +224,7 @@ void UI_DisplayARDF_FreqCh(bool updatenow)
    {
       // frequency mode without gain cheat
       // or (frequency is shown anyway (memory mode or gain cheat mode) and no input)
-      
+
       if ( gInputBoxIndex == 0 )
       {
          uint32_t frequency = gRxVfo->freq_config_RX.Frequency;
@@ -305,13 +305,12 @@ void UI_DisplayARDF_FreqCh(bool updatenow)
       {
          UI_PrintStringSmallNormal(buffer, 64, 0, line); // 0->128: text centered, but pixel deletion problem
       }
-   
+
    }
 
    if ( updatenow != false )
    {
       ST7565_BlitLine(line);
-
    }
 }
 
@@ -340,7 +339,7 @@ void UI_DisplayARDF(void)
          activefox = 0;
       sprintf(buffer, "%d", activefox);
       UI_DisplayFrequency(buffer, 0, 0, false);
-   
+
       UI_DisplayARDF_Timer();
 
       xpos = 57;
@@ -396,7 +395,7 @@ void UI_DisplayARDF(void)
    if ( (ARDF_ActVfoHasGainRemember(vfo) != false) && (gARDFDFSimpleMode == 0) )
    {
       int foxliststart = 0;
-   
+
       if ( gARDFNumFoxes > 5 )
       {
          foxliststart = (gARDFNumFoxes - 2 + gARDFActiveFox) % gARDFNumFoxes;
@@ -408,7 +407,7 @@ void UI_DisplayARDF(void)
          sprintf(buffer, "%d", idx + 1 );
 
          const int lineofs = 16;
-         
+
          if ( idx == gARDFActiveFox )
          {
             UI_PrintStringSmallBold(buffer, lineofs + i*16 + i*4, lineofs + (i+1)*16 + i*4, 4);
@@ -441,7 +440,7 @@ void UI_DisplayARDF(void)
    if ( gARDFDFSimpleMode == 0 )
    {
       uint32_t frequency = 0;
-      
+
       UI_DisplayARDF_Mod(&gEeprom.VfoInfo[1-vfo], 1-vfo, 6, false);
 
       VFO_Info_t *vfoInfo = &gEeprom.VfoInfo[1-vfo]; // the inactive vfo
@@ -470,7 +469,7 @@ void UI_DisplayARDF(void)
 
       UI_PrintStringSmallNormal(buffer, 64, 0, 6);
    }
-   
+
    ST7565_BlitFullScreen();
 
 }
