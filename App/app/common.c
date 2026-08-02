@@ -38,7 +38,7 @@ void COMMON_SwitchVFOs()
     if ( (gSetting_ARDFEnable)
          && (ARDF_ActiveGainCheatType(gEeprom.RX_VFO) != ARDF_NO_GAIN_CHEAT) )
     {
-        ARDF_UndoGainCheat(); // only undo the frequency shift. if mistune has to be done for the new vfo a waiting time has to be ensured. this is all done in ARDF_10ms() fixme
+        ARDF_UndoGainCheat(); // undo gain cheat if necessary. if gain cheat has to be done for the new vfo a waiting time has to be ensured. this is all done in ARDF_10ms()
     }
 #endif
 
