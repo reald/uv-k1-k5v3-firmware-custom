@@ -20,7 +20,7 @@ Anyway, have fun.
 
 * AM demodulation
 * Manual gain control
-* Transmission function completely disabled (safe for non hamradio licenced operators!)
+* Transmission function completely disabled (safe for non ham radio licenced operators!)
 * Active fox and remaining cycle time display
 * Beep signal before end of fox cycle
 
@@ -126,7 +126,7 @@ That's it.
 
 Main screen in "DF Simple" mode. Gain step 6 is used, received signal strength is 062 (the higher the stronger the signal). 
 A means "VFO A" (can be A or B, does not matter), "AM" means amplitude demodulation (selected in the menu before),
-"W" means wide bandwidth (can be "W" or "N", does not really matter). 433.920 is the selected frequency (433.92 MHz).
+"W" means wide bandwidth (can be "W" or "N", does not really matter). 433.920 is the selected frequency (433.920 MHz).
 
 ### ARDF Quick Setup ###
 
@@ -160,7 +160,7 @@ Modify with UP/DOWN key in 0.1s steps or enter value as *5 digit number* in 1/10
 
 #### Main ARDF Screen ####
 
-<img src="images/ardf_screen.png" width=800 />
+<img src="images/ardf_screen.png" width=400 />
 
 This pictures shows the radio screen if ARDF mode is enabled. The battery voltage is 7.96V. The second (big) line shows
 active fox (3), seconds left in this fox cycle (5), chosen gain index (10) and the raw received signal strength (083).
@@ -266,7 +266,7 @@ changes can be done. This can be useful if preconfigured devices are handed to n
   * If you changed channel settings on the radio you have to store them first (menu "ChSave").
 * Signals are all very low, antenna does not respond to rotation movement.
   * Increase volume knob to 90 degree position or more.
-* After activating "DF Simple" and switching back to "ARDF" mode the gain remeber table is not shown.
+* After activating "DF Simple" and switching back to "ARDF" mode the gain remember table is not shown.
   * Reactivate Fox Timing (NumFox > 1) and Gain Remember (GainRe) for the desired VFO
 * UP and Down Keys are swapped on UV-K5 V3.
   * K1 settings are selected. Change menu point "SetNav" from „LEFT RIGHT UV-K1“ to „UP DOWN UV-K5(8)“.
