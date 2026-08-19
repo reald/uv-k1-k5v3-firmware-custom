@@ -211,12 +211,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 #ifdef ENABLE_ARDF
 
         case MENU_ARDF:
-            *pMin = 0;
+            //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_ARDF) - 1;
             break;
 
         case MENU_ARDF_NUMFOXES:
-            *pMin = 0;
+            //*pMin = 0;
             *pMax = ARDF_NUM_FOX_MAX;
             break;
 
@@ -226,12 +226,17 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             break;
 
         case MENU_ARDF_GAIN_REMEMBER:
-            *pMin = 0;
+            //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_ARDF_Remember_Gain) - 1;
             break;
 
+        case MENU_ARDF_RSSI0_100M:
+            //*pMin = 0;
+            *pMax = ARDF_RSSI0_MAX;
+            break;
+
         case MENU_ARDF_CYCLE_END_BEEP:
-            *pMin = 0;
+            //*pMin = 0;
             *pMax = ARDF_CYCLE_END_BEEP_S_MAX;
             break;
 
@@ -652,7 +657,7 @@ void MENU_AcceptSetting(void)
             {
                 // value updated
                 gARDFFoxDuration10ms = gSubMenuSelection;
-                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
 
                 gARDFRequestSaveEEPROM = true;
             }
@@ -685,6 +690,17 @@ void MENU_AcceptSetting(void)
 
             return;
 
+        case MENU_ARDF_RSSI0_100M:
+
+            if ( gARDFRssi0At100m != gSubMenuSelection )
+            {
+                // value updated
+                gARDFRssi0At100m = gSubMenuSelection;
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
         case MENU_ARDF_CYCLE_END_BEEP:
 
             if ( gARDFCycleEndBeep_s != gSubMenuSelection )
@@ -702,7 +718,7 @@ void MENU_AcceptSetting(void)
             {
                 // value updated
                 gARDFClockCorrAddTicksPerMin = gSubMenuSelection;
-                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
 
                 gARDFRequestSaveEEPROM = true;
             }
@@ -1289,6 +1305,10 @@ void MENU_ShowCurrentSetting(void)
 
         case MENU_ARDF_GAIN_REMEMBER:
             gSubMenuSelection = gARDFGainRemember;
+            break;
+
+        case MENU_ARDF_RSSI0_100M:
+            gSubMenuSelection = gARDFRssi0At100m;
             break;
 
         case MENU_ARDF_CYCLE_END_BEEP:

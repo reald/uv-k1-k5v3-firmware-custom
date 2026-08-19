@@ -355,37 +355,28 @@ gEeprom.FreqChannel[1]   = IS_FREQ_CHANNEL(Data16[5]) ? Data16[5] : (FREQ_CHANNE
 
 #ifdef ENABLE_ARDF
     // 0F20..0F2F
-    PY25Q16_ReadBuffer(0x00D000 + 0x04, Data, 8);
 
-    if ( Data[6] != 0xFF )
+    // part 1
+    PY25Q16_ReadBuffer(0x00D000, Data, 8);
+
+    if ( (Data[2] != 0xFF) || (Data[3] !=0xFF) )
     {
-        gSetting_ARDFEnable = Data[6] & 0x01;
-        gARDFNumFoxes = (Data[6] >> 1) & 0x0f;
-        gARDFGainRemember = (Data[6] >> 5) & 0x03;
-        gARDFDFSimpleMode = (Data[6] >> 7) & 0x01;
+        memcpy(&gARDFRssi0At100m, &Data[2], sizeof(gARDFRssi0At100m));
+
+        if ( gARDFRssi0At100m > ARDF_RSSI0_MAX )
+        {
+           gARDFRssi0At100m = ARDF_DEFAULT_RSSI0AT100M;
+        }
     }
     else
     {
         // eeprom empty. use defaults
-        gSetting_ARDFEnable = ARDF_DEFAULT_ENABLE;
-        gARDFNumFoxes = ARDF_DEFAULT_NUM_FOXES;
-        gARDFGainRemember = ARDF_DEFAULT_GAIN_REMEMBER;
-        gARDFDFSimpleMode = ARDF_DEFAULT_DF_SIMPLE;
+        gARDFRssi0At100m = ARDF_DEFAULT_RSSI0AT100M;
     }
 
-    if ( Data[7] != 0xFF )
+    if ( (Data[4] != 0xFF) || (Data[5] != 0xFF) || (Data[6] != 0xFF) || (Data[7] != 0xFF) )
     {
-        gARDFCycleEndBeep_s = Data[7];
-    }
-    else
-    {
-        // eeprom empty. use defaults
-        gARDFCycleEndBeep_s = ARDF_CYCLE_END_BEEP_S_DEFAULT;
-    }
-
-    if ( (Data[0] != 0xFF) || (Data[1] != 0xFF) || (Data[2] != 0xFF) || (Data[3] != 0xFF) )
-    {
-        memcpy(&gARDFFoxDuration10ms, Data, sizeof(gARDFFoxDuration10ms));
+        memcpy(&gARDFFoxDuration10ms, &Data[4], sizeof(gARDFFoxDuration10ms));
     }
     else
     {
@@ -397,21 +388,52 @@ gEeprom.FreqChannel[1]   = IS_FREQ_CHANNEL(Data16[5]) ? Data16[5] : (FREQ_CHANNE
         gARDFFoxDuration10ms = ARDF_DEFAULT_FOX_DURATION;
     }
 
-    if ( (Data[4] == 0xFF) && (Data[5] == 0xFF) )
+    // part 2
+    PY25Q16_ReadBuffer(0x00D000 + 0x08, Data, 8);
+
+    if ( (Data[0] == 0xFF) && (Data[1] == 0xFF) )
     {
         // eeprom empty
         gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
     }
     else
     {
-        memcpy(&gARDFClockCorrAddTicksPerMin, &Data[4], sizeof(gARDFClockCorrAddTicksPerMin));
+        memcpy(&gARDFClockCorrAddTicksPerMin, &Data[0], sizeof(gARDFClockCorrAddTicksPerMin));
 
         if ( (gARDFClockCorrAddTicksPerMin < -500) || (gARDFClockCorrAddTicksPerMin > 500) )
         {
             gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
         }
     }
-    gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 ); // fixme: limit to 1s
+    gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
+
+    if ( Data[2] != 0xFF )
+    {
+        gSetting_ARDFEnable = Data[2] & 0x01;
+        gARDFNumFoxes = (Data[2] >> 1) & 0x0f;
+        gARDFGainRemember = (Data[2] >> 5) & 0x03;
+        gARDFDFSimpleMode = (Data[2] >> 7) & 0x01;
+    }
+    else
+    {
+        // eeprom empty. use defaults
+        gSetting_ARDFEnable = ARDF_DEFAULT_ENABLE;
+        gARDFNumFoxes = ARDF_DEFAULT_NUM_FOXES;
+        gARDFGainRemember = ARDF_DEFAULT_GAIN_REMEMBER;
+        gARDFDFSimpleMode = ARDF_DEFAULT_DF_SIMPLE;
+    }
+
+    if ( Data[3] != 0xFF )
+    {
+        gARDFCycleEndBeep_s = Data[3];
+    }
+    else
+    {
+        // eeprom empty. use defaults
+        gARDFCycleEndBeep_s = ARDF_CYCLE_END_BEEP_S_DEFAULT;
+    }
+
+
 
 #endif
 
@@ -777,7 +799,15 @@ void SETTINGS_SaveARDF(void)
 {
     union {
         struct {
+            uint16_t free0;
+            uint16_t ARDFRSSI0At100m;
             uint32_t FoxDuration;
+        };
+        uint8_t __raw[8];
+    } __attribute__((packed)) ARDFCfg;
+
+    union {
+        struct {
             int16_t  ARDFClockCorrTicksMin;
 
             uint8_t  ARDFEnable:1;
@@ -786,21 +816,26 @@ void SETTINGS_SaveARDF(void)
             uint8_t  DFSimpleMode:1;
 
             uint8_t  CycleEndBeep_s;
+            uint32_t free1;
         };
         uint8_t __raw[8];
-    } __attribute__((packed)) ARDFCfg;
+    } __attribute__((packed)) ARDFCfg2;
 
     memset(ARDFCfg.__raw, 0xFF, sizeof(ARDFCfg.__raw));
+    memset(ARDFCfg2.__raw, 0xFF, sizeof(ARDFCfg2.__raw));
 
+    ARDFCfg.ARDFRSSI0At100m = gARDFRssi0At100m;
     ARDFCfg.FoxDuration = gARDFFoxDuration10ms;
-    ARDFCfg.ARDFClockCorrTicksMin = gARDFClockCorrAddTicksPerMin;
-    ARDFCfg.ARDFEnable = gSetting_ARDFEnable;
-    ARDFCfg.NumFoxes = gARDFNumFoxes;
-    ARDFCfg.GainRemember = gARDFGainRemember;
-    ARDFCfg.DFSimpleMode = gARDFDFSimpleMode;
-    ARDFCfg.CycleEndBeep_s = gARDFCycleEndBeep_s;
 
-    PY25Q16_WriteBuffer(0x00D000 + 0x04, ARDFCfg.__raw, sizeof(ARDFCfg.__raw), true);
+    ARDFCfg2.ARDFClockCorrTicksMin = gARDFClockCorrAddTicksPerMin;
+    ARDFCfg2.ARDFEnable = gSetting_ARDFEnable;
+    ARDFCfg2.NumFoxes = gARDFNumFoxes;
+    ARDFCfg2.GainRemember = gARDFGainRemember;
+    ARDFCfg2.DFSimpleMode = gARDFDFSimpleMode;
+    ARDFCfg2.CycleEndBeep_s = gARDFCycleEndBeep_s;
+
+    PY25Q16_WriteBuffer(0x00D000, ARDFCfg.__raw, sizeof(ARDFCfg.__raw), true);
+    PY25Q16_WriteBuffer(0x00D000 + 0x08, ARDFCfg2.__raw, sizeof(ARDFCfg2.__raw), true);
 
 }
 

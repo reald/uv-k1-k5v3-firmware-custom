@@ -1,6 +1,6 @@
 # Open Quansheng UV-K5 V3/UV-K1 firmware with 2m and 70cm ARDF support
 
-> [!WARNING]  
+> [!WARNING]
 > Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
 Anyway, have fun.
 
@@ -23,11 +23,12 @@ Anyway, have fun.
 * Transmission function completely disabled (safe for non ham radio licenced operators!)
 * Active fox and remaining cycle time display
 * Beep signal before end of fox cycle
+* Fox distance prediction
 
 ## Compatible Devices
 
 > [!WARNING]
-> There are **new hardware versions out**. **Check carefully** which hardware version do you have **before flashing** any new firmware! 
+> There are **new hardware versions out**. **Check carefully** which hardware version do you have **before flashing** any new firmware!
 
 :exclamation: All versions have different processors and need the right firmware and flash tool to run. :exclamation:
 
@@ -75,7 +76,7 @@ Download a precompiled release in the project repository for your [hardware vers
 ## Firmware Flashing
 
 ### Preparation
-You need a quansheng programming cable with an integrated USB to serial converter. Most baofeng cables are working fine, too. 
+You need a quansheng programming cable with an integrated USB to serial converter. Most baofeng cables are working fine, too.
 Since hardware version 3 the devices can be flashed with a standard USB-C cable, too.
 
 1. Find out which hardware version do you have and which firmware do you need for it. See [compatible devices](#compatible-devices).
@@ -96,7 +97,7 @@ Since hardware version 3 the devices can be flashed with a standard USB-C cable,
 - There is no working webflasher for this hardware version.
 - On linux [k5prog](https://github.com/nica-f/k5prog) can be used: Run `k5prog -b UVK5-V2.ARDF.bin -F -YYY`
 - On windows [k5prog_win](https://github.com/OneOfEleven/k5prog-win/raw/refs/heads/main/k5prog_win.exe) can be used. (Choose `UVK5-V2.ARDF.packed.bin`)
- 
+
 #### Flash programs for UV-K5/6 hardware version 3 and K1
 - Either programming cable or USB-C cable can be used.
 - :warning: k5prog and k5prog_win are NOT compatible.
@@ -112,29 +113,29 @@ Since hardware version 3 the devices can be flashed with a standard USB-C cable,
 
 ### Draussenfuchs Quick Setup ###
 
-1. Turn the power knob at least 90° to 120° to switch the device on. 
-1. Draussenfuchs Mode can be enabled in the menu (ARDF = "DF Simple"). This enables **manual gain control** 
+1. Turn the power knob at least 90° to 120° to switch the device on.
+1. Draussenfuchs Mode can be enabled in the menu (ARDF = "DF Simple"). This enables **manual gain control**
 stepping by pressing **UP/DOWN keys**. Smaller values have lower sensitivity. Use this close to loud transmitters.
 "DF Simple" mode automatically preconfigures the most important settings.
 1. Set frequency stepping to 1 kHz. (Menu: Step = 1.00kHz)
-1. Select amplitude demodulation (Menu: Demodu = AM)
+1. Select amplitude demodulation (Menu: Mode = AM)
 1. Enter frequency (Main Screen: 433920 for 433.920 MHz)
 
 That's it.
 
 <img src="images/df_screen.png" width=400 />
 
-Main screen in "DF Simple" mode. Gain step 6 is used, received signal strength is 062 (the higher the stronger the signal). 
+Main screen in "DF Simple" mode. Gain step 6 is used, received signal strength is 062 (the higher the stronger the signal).
 A means "VFO A" (can be A or B, does not matter), "AM" means amplitude demodulation (selected in the menu before),
 "W" means wide bandwidth (can be "W" or "N", does not really matter). 433.920 is the selected frequency (433.920 MHz).
 
 ### ARDF Quick Setup ###
 
-For amateur radio direction finding (ARDF) with timing some steps are needed:
+For amateur radio direction finding (ARDF) with timing some more steps are needed:
 
 Turn the power knob at least 90° to switch the device on. (On v3 devices at least 120°).
 
-ARDF Mode can be disabled/enabled in the menu (ARDF = OFF / ARDF / DF Simple). "ARDF" or "DF Simple" enable **manual gain control** 
+ARDF Mode can be disabled/enabled in the menu (ARDF = OFF / ARDF / DF Simple). "ARDF" or "DF Simple" enable **manual gain control**
 stepping by pressing **UP/DOWN keys**. On step changes the attenuation by approximately 5dB. Index 0
 has the smallest sensitivity.
 "DF Simple" has a simplified display especially created for [Draussenfuchs](https://draussenfuchs.de) or when no timing is needed.
@@ -142,7 +143,7 @@ has the smallest sensitivity.
 - Disable squelch (Menu: Sql = 0)
 - Disable dual watch (Menu: RxMode = MAIN ONLY).
 - Select number of foxes in menu "NumFox" (default = 5, min = 1, max = 10; 0 disables fox timing).
-- Choose duration time of one fox transmission in menu "FoxDur". Default is 60s. 
+- Choose duration time of one fox transmission in menu "FoxDur". Default is 60s.
 Modify with UP/DOWN key in 0.1s steps or enter value as *5 digit number* in 1/100s resolution. Confirm with menu button (min = 001.00s, max = 999.99s).
 - Enter beep signal before end of fox cycle time (menu "EndSig", 0s = off, 1..30s).
 - Adjust clock correction if necessary (menu "ClkCor", details below).
@@ -162,26 +163,34 @@ Modify with UP/DOWN key in 0.1s steps or enter value as *5 digit number* in 1/10
 
 <img src="images/ardf_screen.png" width=400 />
 
-This pictures shows the radio screen if ARDF mode is enabled. The battery voltage is 7.96V. The second (big) line shows
-active fox (3), seconds left in this fox cycle (5), chosen gain index (10) and the raw received signal strength (083).
+This pictures shows the radio screen if ARDF mode is enabled. The battery voltage is 8.54V. The second (big) line shows
+active fox (2), seconds left in this fox cycle (5), chosen gain index (0) and the raw received signal strength indicator (RSSI, 151 here).
 
-The manual gain index value can be chosen with UP/DOWN keys. Smaller values mean more attenuation. Use smaller values if you get closer to a transmitter. 
+The **bold line** below show the settings for the **active VFO**:
+VFO "A", demodulation "AM", bandwidth mode "W" (wide) and receiving frequency "144.525 MHz".
+
+In the middle the signal strength is shown: -93 dBm / S9 and a strength bar. The value at the end of the line is called *RSSI0* (151). It is
+used for distance calculation and distance calibration. It adds the influence of the selected attenuation (gain index) to the raw RSSI value.
+
+For the active VFO (A) the gain remember mode (details below) is active so the gain index history table for up to 5 foxes is shown. The active fox number is bold.
+The last column behind the gain remember table shows a rough prediction of the distance to the fox (100m).
+It is roughly estimated out of the normalized signal strength "RSSI0".
+If the received signal is too weak no prediction is shown.
+
+The last line shows the configuration for the **inactive VFO**. It is recommended to put the fox settings in VFO A and the return beacon on VFO B.
+By long pressing "2 A/B" key can quickly be switched between both configurations.
+
+The manual gain index (attenuation) value can be chosen with UP/DOWN keys. Smaller values mean more attenuation. Use smaller values if you get closer to a transmitter.
 
 Because hardware version 3 has less attenuation dynamic than its predecessors, negative gain indexes were introduced:
   * -1 disables the input LNA
   * -2 and -3 tune to the second/third harmonic frequency (if the radio can receive this range)
 
-All methods give you a huge additional attenuation to prevent overdriving the receiver. Be aware that the radiation pattern of your antenna
-might be different when receiving harmonics.
+All methods give you a huge additional attenuation and can be used to prevent overdriving the receiver.
+Use this only close to a transmitter if the RSSI value is rising above 200.
+Be aware that the radiation pattern of your antenna might be different when receiving harmonics.
 
-The **bold line** below show the settings for the **active VFO**:
-VFO "A", demodulation "AM", bandwidth mode "W" (wide) and
-receiving frequency "433.920 MHz". For this VFO the gain remember mode (details below) is active so the gain index history for up to 5 foxes is shown. The active fox number is bold.
-
-The **last line** shows the configuration for the **inactive VFO**. It is recommended to put the fox settings in VFO A and the return beacon on VFO B.
-By long pressing "2 A/B" key can quickly be switched between both configurations.
-
-On system boot the device starts with active fox number 1 and full duration time left. In menu "ActFox" the active fox can be changed. 
+On system boot the device starts with active fox number 1 and full duration time left. In menu "ActFox" the active fox can be changed.
 The timer can be reset in menu "TiRst". Select "TiRst" with "M"-key, a triangle appears. Another press on "M"-key will reset the timer.
 Use this for synchronization. Active fox and timer are shown on the top in the status bar if the menu is opened.
 
@@ -192,13 +201,13 @@ the ending of a fox cycle can be configured in menu "EndSig" (1..30s or "off" fo
 #### Gain Remember Mode ####
 This firmware supports **gain remember** for manual gain control. If gain remember is activated, the
 **manual gain index** is handled **for every fox separately**. At the **beginning of a fox cycle** the **last gain
-index for this fox** is **restored from the last cycle**. The manual gain index history for up to 5 foxes is shown 
-in the lower part of the screen. 
+index for this fox** is **restored from the last cycle**. The manual gain index history table for up to 5 foxes is shown
+in the lower part of the screen.
 
 If gain remember is **off**, there is only one gain index for all foxes independent from any fox cycle times.
 This feature can be **configured for both VFOs separately** (menu "GainRe": Off / VFO A / VFO B / BOTH).
 
-A usage scenario would be to configure the fox frequency on VFO A with gain remember mode on. Put the return beacon 
+A usage scenario would be to configure the fox frequency on VFO A with gain remember mode on. Put the return beacon
 frequency on VFO B without gain remember on. (The return beacon is transmitting permanently so there is no need for
 different gains in different time slots.)
 
@@ -207,15 +216,28 @@ You can quickly switch between both VFOs by long pressing "2 (A/B)" or a configu
 If gain remember is not activated on the actual VFO or "no timing" is selected (NumFox=0), no gain index history is shown in the lower part of the screen.
 
 
+#### Distance prediction and calibration ####
+The distance to the fox is calculated out of a simple model: A change of 30dB in signal strength in a forest is a factor of 10 in distance. This is only
+a rough model. The real signal strength highly depends on the topology of the area and can vary a lot especially in hilly areas. So don´t overestimate
+the predicted value.
+
+The signal strength highly depends on the real transmitted power of the fox and the antenna at your receiver. To calibrate this combination place yourself
+100m away from a transmitting fox. Choose a gain index as low as possible (preferable 0, but NOT negative!). Point your antenna directly to the fox.
+Watch the RSSI0 value (right from the signal strength bar, above the predicted distance) if the fox is transmitting its identifier. Enter the
+observed peak value in the "RSS100" menu.
+If the shown distance values are too low, increase the value of RSS100. If the shown distance values are too high, decrease the value of RSS100.
+The resolution is 0.5dB. A value of 0 disables distance prediction completely.
+
+
 #### Clock Correction ####
 The microcontroller of the radio has no crystal oscillator and runs on an internal 48 MHz resonator only.
-So all timers in the CPU are not very precise. This leads to a heavily drifting clock. 
+So all timers in the CPU are not very precise. This leads to a heavily drifting clock.
 
 > [!Note]
 > If no timing is used (e.g. in ARDF="DF Simple" mode) clock correction is **not** necessary.
 
 The firmware provides a correction
-mechanism to reach acceptable ranges. Start ARDF mode and stop **how many seconds really pass** until **the radio tells 1 hour is up**. 
+mechanism to reach acceptable ranges. Start ARDF mode and stop **how many seconds really pass** until **the radio tells 1 hour is up**.
 (Useful settings: NumFox = 10, FoxDur = 60.00s, sync to reference clock.) The formula for the correction value is:
 
 $$ CorrectionValue = 6000 - (StoppedSeconds * 100)/60 $$
@@ -228,26 +250,26 @@ Enter this value in menu "ClkCor" using UP/DOWN keys (allowed range: -500 ... 50
 
 
 #### Function keys ####
-Two different ARDF actions can be mapped to function keys: 
-* Set manual gain to a medium index value (4). It is recommended to configure "ARDF Set Med.Gain" to short press on F2 key, menu: F2Shrt) 
+Two different ARDF actions can be mapped to function keys:
+* Set manual gain to a medium index value (4). It is recommended to configure "ARDF Set Med.Gain" to short press on F2 key, menu: F2Shrt)
 * Enable/Disable ARDF function (e.g. for long press on F1 key / menu: F1Long = "ARDF off/on").
 
 It is recommended to configure "Switch VFO" to F1 short (menu F1Shrt).
 
 
 #### Chirp ####
-There is a [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) module along with the release and in the folder [chirp_module/](chirp_module/). 
+There is a [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) module along with the release and in the folder [chirp_module/](chirp_module/).
 The radio (including ARDF settings) can be programmed only with this module and not with the standard UV-Kx chirp module.
 
 #### Notes ####
 * The lowest possible frequency of the receiver chip is 18 MHz. So this is NOT usable on 80 m.
-* In ARDF mode any TX functionality is disabled. However it is recommended to compile with ENABLE_PREVENT_TX=1 to 
-permanently disable TX. This is done for official releases. ARDF receivers with a builtin TX functionality are not permitted 
-in official competitions anyway. 
+* In ARDF mode any TX functionality is disabled. However it is recommended to compile with ENABLE_PREVENT_TX=1 to
+permanently disable TX. This is done for official releases. ARDF receivers with a builtin TX functionality are not permitted
+in official competitions anyway.
 * You can glue an arrow on the volume knob to keep the position under control (simply cut a triangle from a sticker).
-* It is possible (but not recommended because it is more complicated) to use memory mode instead of frequency mode on each VFO. 
-If memory mode is active on the current VFO, frequency and memory number are are displayed alternately one after each other. 
-Number keys change the memory number (enter 3 digits)  and not the frequency. You can switch between memory mode and 
+* It is possible (but not recommended because it is more complicated) to use memory mode instead of frequency mode on each VFO.
+If memory mode is active on the current VFO, frequency and memory number are are displayed alternately one after each other.
+Number keys change the memory number (enter 3 digits)  and not the frequency. You can switch between memory mode and
 frequency mode by long pressing "3 VFO/MR" key.
 * If you modify settings in memory mode don´t forget to save them before switching off (menu "ChSave").
 * You can long press F/# to lock the keypad. If keypad is locked a small lock symbol in the top status bar is shown.
@@ -442,7 +464,7 @@ Notes: This prototype has a switchable attenuator (approx. 25dB), this is option
 | Director | 90 cm | 51.5 cm |
 
 70 cm:
-| Element | Length | Position | 
+| Element | Length | Position |
 | --- | --- | --- |
 | Reflector | 34,8 cm | 0 cm |
 | Radiator | 31 cm | 14,5 cm |

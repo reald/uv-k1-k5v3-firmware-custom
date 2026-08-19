@@ -445,7 +445,8 @@ struct {
 // --------------------
 
 #seekto 0x00D000;
-ul32 ARDFfree0;
+ul16 ARDFfree0;
+ul16 ARDFRSSI0At100m;
 ul32 ARDFFoxDuration;
 il16 ARDFClockCorrTicksMin;
 u8 ARDFDFSimpleMode:1,
@@ -1051,7 +1052,7 @@ def list_def(value, lst, default):
 class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
     """Quansheng UV-K5 (egzumer + f4hwn)"""
     VENDOR = "Quansheng"
-    MODEL = "UV-K1 & UV-K5 V3 (F4HWN Fusion)"
+    MODEL = "UV-K1 & UV-K5 V3 (ARDF)"
     BAUD_RATE = 38400
     NEEDS_COMPAT_SERIAL = False
     FIRMWARE_VERSION = ""
@@ -1927,6 +1928,9 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             elif elname == "ARDFClockCorrTicksMin":
                 _mem.ARDFClockCorrTicksMin = element.value
 
+            elif elname == "ARDFRSSI0At100m":
+                _mem.ARDFRSSI0At100m = element.value
+
             elif elname == "ARDFFoxDuration":
                 _mem.ARDFFoxDuration = element.value
             
@@ -2681,6 +2685,10 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 
         # ----------------- ARDF settings
 
+        tmp_ARDFRSSI0At100m = _mem.ARDFRSSI0At100m
+        val = RadioSettingValueInteger(0, 226, tmp_ARDFRSSI0At100m)
+        ARDFRSSI0At100m_setting = RadioSetting("ARDFRSSI0At100m", "ARDF RSSI0 at 100m distance (RssI00) [0=No Distance Prediction]", val)
+
         tmp_ARDFFoxDuration = _mem.ARDFFoxDuration
         val = RadioSettingValueInteger(100, 99999, tmp_ARDFFoxDuration)
         ARDFFoxDuration_setting = RadioSetting("ARDFFoxDuration", "ARDF Fox Transmitting Duration [1/100 s] (FoxDur)", val)
@@ -3330,6 +3338,7 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         if _mem.BUILD_OPTIONS.ENABLE_ARDF:
             ardf.append(ARDFEnable_setting)
             ardf.append(ARDFDFSimpleMode_setting)
+            ardf.append(ARDFRSSI0At100m_setting)
             ardf.append(ARDFFoxDuration_setting)
             ardf.append(ARDFClockCorrTicksMin_setting)
             ardf.append(ARDFNumFoxes_setting)

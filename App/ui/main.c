@@ -39,10 +39,6 @@
 #include "audio.h"
 #include "menu.h"
 
-#ifdef ENABLE_ARDF
-#include "app/ardf.h"
-#endif
-
 #ifdef ENABLE_FEAT_F4HWN
     #include "driver/system.h"
 #endif
@@ -271,17 +267,6 @@ void UI_DisplayRSSIBar(const bool now)
         line = 3;
     }
 
-#if defined(ENABLE_ARDF)
-    if ( gSetting_ARDFEnable && gScreenToDisplay==DISPLAY_ARDF )
-    {
-        line = 3;
-    }
-
-    if ( gSetting_ARDFEnable == false )
-    {
-       // do not show in ARDF mode!
-#endif
-
     //char rx[4];
     //sprintf(String, "%d", RxBlink);
     //UI_PrintStringSmallBold(String, 80, 0, RxLine);
@@ -303,10 +288,6 @@ void UI_DisplayRSSIBar(const bool now)
 
         ST7565_BlitLine(RxLine);
     }
-#if defined(ENABLE_ARDF)
-    }
-#endif
-
 #else
     const unsigned int line = 3;
 #endif
@@ -328,12 +309,8 @@ void UI_DisplayRSSIBar(const bool now)
     if ((gEeprom.KEY_LOCK && gKeypadLocked > 0) || center_line != CENTER_LINE_RSSI)
         return;     // display is in use
 
-    if ( gCurrentFunction == FUNCTION_TRANSMIT
-         || ( (gScreenToDisplay != DISPLAY_MAIN)
-#ifdef ENABLE_ARDF
-              && (gScreenToDisplay != DISPLAY_ARDF)
-#endif
-            )
+    if (gCurrentFunction == FUNCTION_TRANSMIT ||
+        gScreenToDisplay != DISPLAY_MAIN
 #ifdef ENABLE_DTMF_CALLING
          || gDTMF_CallState != DTMF_CALL_STATE_NONE
 #endif
@@ -347,14 +324,7 @@ void UI_DisplayRSSIBar(const bool now)
     int16_t rssi_dBm =
         BK4819_GetRSSI_dBm()
 #ifdef ENABLE_AM_FIX
-        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM)
-    #ifdef ENABLE_ARDF
-            && ( gSetting_ARDFEnable == false )
-    #endif
-        ? AM_fix_get_gain_diff() : 0)
-#endif
-#ifdef ENABLE_ARDF
-        + ( (gSetting_ARDFEnable != false) ? ARDF_Get_GainDiff() : 0 )
+        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
 #endif
         + dBmCorrTable[gRxVfo->Band];
 
@@ -380,16 +350,8 @@ void UI_DisplayRSSIBar(const bool now)
     const int16_t rssi_dBm =
         BK4819_GetRSSI_dBm()
 #ifdef ENABLE_AM_FIX
-        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM)
-    #ifdef ENABLE_ARDF
-            && ( gSetting_ARDFEnable == false )
+        + ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
 #endif
-        ? AM_fix_get_gain_diff() : 0)
-#endif
-#ifdef ENABLE_ARDF
-        + ( (gSetting_ARDFEnable != false) ? ARDF_Get_GainDiff() : 0 )
-#endif
-
         + dBmCorrTable[gRxVfo->Band];
 
     int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;

@@ -66,6 +66,7 @@ const t_menu_item MenuList[] =
     {"ActFox",      MENU_ARDF_SETFOX   },
     {"TiRst",       MENU_ARDF_TIME_RESET },
     {"GainRe",      MENU_ARDF_GAIN_REMEMBER },
+    {"RSS100",      MENU_ARDF_RSSI0_100M },
     {"EndSig",      MENU_ARDF_CYCLE_END_BEEP },
     {"ClkCor",      MENU_ARDF_CLOCK_CORR },
     {"SetNav",      MENU_SET_NAV       }, // set navigation (LEFT / RIGHT or UP / DOWN)
@@ -804,6 +805,13 @@ void UI_DisplayMenu(void)
 
         case MENU_ARDF_GAIN_REMEMBER:
             strcpy(String, gSubMenu_ARDF_Remember_Gain[gSubMenuSelection]);
+            break;
+
+        case MENU_ARDF_RSSI0_100M:
+            if ( gSubMenuSelection != 0 )
+                sprintf(String, "%d", gSubMenuSelection);
+            else
+                sprintf(String, "No\nDistance\nPrediction");
             break;
 
         case MENU_ARDF_CYCLE_END_BEEP:
