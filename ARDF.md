@@ -75,16 +75,28 @@ Download a precompiled release in the project repository for your [hardware vers
 
 ## Firmware Flashing
 
-### Preparation
+### Preparation with serial programming cable
+
 You need a quansheng programming cable with an integrated USB to serial converter. Most baofeng cables are working fine, too.
-Since hardware version 3 the devices can be flashed with a standard USB-C cable, too.
 
 1. Find out which hardware version do you have and which firmware do you need for it. See [compatible devices](#compatible-devices).
 1. Backup your settings!
 1. Charge battery if almost empty!
-1. Press PTT key while turning the radio on. This will NOT work if programming cable is already plugged. White LED on top MUST be on.
+1. Press PTT key while turning the radio on. This will NOT work if the programming cable is already plugged. White LED on top MUST turn on.
 1. Connect the programming cable NOW
 1. Run flash program which fits to your hardware version (see next sections)
+
+### Preparation with USB-C cable
+
+Since UV-Kx hardware version 3 the devices can be flashed with a standard USB-C cable, too.
+
+1. Find out which hardware version do you have and which firmware do you need for it. See [compatible devices](#compatible-devices).
+1. Connect the USB-C cable
+1. Backup your settings!
+1. Charge battery if almost empty!
+1. Press PTT key while turning the radio on. White LED on top MUST turn on.
+1. Run flash program which fits to your hardware version (see next sections)
+
 
 #### Flash programs for UV-K5/6 hardware version 1
 - [HW Version 1 Webflasher for chrome based browsers](https://egzumer.github.io/uvtools/) (Choose `firmware.packed.bin`)
@@ -149,19 +161,21 @@ Modify with UP/DOWN key in 0.1s steps or enter value as *5 digit number* in 1/10
 - Adjust clock correction if necessary (menu "ClkCor", details below).
 - Activate VFO A (long pressing key "2 A/B" toggles between both VFOs.
 - Enter the frequency of the foxes using the number keys. If memory mode is active long press "3 VFO MR" to change to frequency mode.
-- Choose the modulation type of the foxes in menu "Demod" (e.g. AM).
+- Choose the modulation type of the foxes in menu "Mode" (e.g. AM).
 - Switch to VFO B by long pressing "2 A/B". This VFO will mostly be used for the return beacon.
 - Configure frequency and modulation the same way as for VFO A.
 - Change back to VFO A by long pressing "2 A/B".
+- If you want to use distance prediction, calibrate RSSI0 at 100m distance (menu "RSS100", details below).
 
 - Unscrew antenna and add a directional antenna with good front/back ratio.
 - Select a medium volume and try not to change it. Volume adjustment should be done with gain control (UP/DOWN keys).
 - Listen for foxes, synchronize fox number and timer in menu with "ActFox" and "TiRst" options (details below).
 - Start hunting foxes and have fun!
 
+
 #### Main ARDF Screen ####
 
-<img src="images/ardf_screen.png" width=400 />
+<img src="images/ardf_screen.png" width=800 />
 
 This pictures shows the radio screen if ARDF mode is enabled. The battery voltage is 8.54V. The second (big) line shows
 active fox (2), seconds left in this fox cycle (5), chosen gain index (0) and the raw received signal strength indicator (RSSI, 151 here).
@@ -195,7 +209,8 @@ The timer can be reset in menu "TiRst". Select "TiRst" with "M"-key, a triangle 
 Use this for synchronization. Active fox and timer are shown on the top in the status bar if the menu is opened.
 
 To get a notice if the fox cycle is ending soon a beep sound can be played. The number of seconds for this tone before
-the ending of a fox cycle can be configured in menu "EndSig" (1..30s or "off" for no signal). Please read the [headphone section](#headphones) before activating this feature with headphones.
+the ending of a fox cycle can be configured in menu "EndSig" (1..30s or "off" for no signal). Please read the [headphone section](#headphones)
+before activating this feature with headphones.
 
 
 #### Gain Remember Mode ####
@@ -258,7 +273,7 @@ It is recommended to configure "Switch VFO" to F1 short (menu F1Shrt).
 
 
 #### Chirp ####
-There is a [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) module along with the release and in the folder [chirp_module/](chirp_module/).
+A [chirp](https://chirpmyradio.com/projects/chirp/wiki/Home) module is shipped with every firmware release.
 The radio (including ARDF settings) can be programmed only with this module and not with the standard UV-Kx chirp module.
 
 #### Notes ####

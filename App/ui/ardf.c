@@ -264,6 +264,7 @@ void UI_DisplayARDF_Distance(bool updatenow)
    const uint8_t start_col = 89;
    char buffer[8];
    uint8_t *p_line = gFrameBuffer[3];
+   int16_t distance_idx = gARDFDistanceIdx;
 
    if ( gLowBattery && !gLowBatteryConfirmed && (gARDFDFSimpleMode==0) )
       return;
@@ -279,10 +280,10 @@ void UI_DisplayARDF_Distance(bool updatenow)
       p_line = gFrameBuffer[5];
       memset(&p_line[start_col], 0x00, LCD_WIDTH - start_col);
 
-      if ( (gARDFRssi0At100m != 0) && (0 <= gARDFDistanceIdx) )
+      if ( (gARDFRssi0At100m != 0) && (0 <= distance_idx) )
       {
          // meters only if active and stable value available
-         sprintf(buffer, "%s", ardf_rssi2distance[gARDFDistanceIdx]);
+         sprintf(buffer, "%s", ardf_rssi2distance[distance_idx]);
 
          if ( strlen(buffer) == 3 )
          {
