@@ -145,7 +145,7 @@ A means "VFO A" (can be A or B, does not matter), "AM" means amplitude demodulat
 
 For amateur radio direction finding (ARDF) with timing some more steps are needed:
 
-Turn the power knob at least 90° to switch the device on. (On v3 devices at least 120°).
+Turn the power knob at least 90°-120° to switch the device on.
 
 ARDF Mode can be disabled/enabled in the menu (ARDF = OFF / ARDF / DF Simple). "ARDF" or "DF Simple" enable **manual gain control**
 stepping by pressing **UP/DOWN keys**. On step changes the attenuation by approximately 5dB. Index 0
@@ -231,7 +231,7 @@ You can quickly switch between both VFOs by long pressing "2 (A/B)" or a configu
 If gain remember is not activated on the actual VFO or "no timing" is selected (NumFox=0), no gain index history is shown in the lower part of the screen.
 
 
-#### Distance prediction and calibration ####
+#### Fox distance prediction and calibration ####
 The distance to the fox is calculated out of a simple model: A change of 30dB in signal strength in a forest is a factor of 10 in distance. This is only
 a rough model. The real signal strength highly depends on the topology of the area and can vary a lot especially in hilly areas. So don´t overestimate
 the predicted value.
