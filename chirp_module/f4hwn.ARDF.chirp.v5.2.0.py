@@ -2687,7 +2687,7 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
 
         tmp_ARDFRSSI0At100m = _mem.ARDFRSSI0At100m
         val = RadioSettingValueInteger(0, 226, tmp_ARDFRSSI0At100m)
-        ARDFRSSI0At100m_setting = RadioSetting("ARDFRSSI0At100m", "ARDF RSSI0 at 100m distance (RssI00) [0=No Distance Prediction]", val)
+        ARDFRSSI0At100m_setting = RadioSetting("ARDFRSSI0At100m", "ARDF RSSI0 at 100m distance (RSS100) [0=No Distance Prediction]", val)
 
         tmp_ARDFFoxDuration = _mem.ARDFFoxDuration
         val = RadioSettingValueInteger(100, 99999, tmp_ARDFFoxDuration)
