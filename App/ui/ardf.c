@@ -214,7 +214,6 @@ void UI_DisplayARDF_RSSIBar(bool updatenow)
 
 
 
-
 void UI_DisplayARDF_Timer(void)
 {
    char buffer[4];

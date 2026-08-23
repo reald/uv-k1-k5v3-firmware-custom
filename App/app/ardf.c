@@ -186,8 +186,10 @@ static void ARDF_UpdatePredictedDistIdx(void)
 
    rssi2distance_idx = LIMIT_TO_RANGE( rssi2distance_idx, 0, (int16_t)(ARRAY_SIZE(ardf_rssi2distance)) - 1 );
 
-   if ( rssi2distance_idx == (ARRAY_SIZE(ardf_rssi2distance) - 1) )
+   if ( (gRssi0Max == 0)
+        || (rssi2distance_idx == (ARRAY_SIZE(ardf_rssi2distance) - 1)) )
    {
+      // signal was too weak for a distance prediction
       rssi2distance_idx = invalid_idx;
    }
 
@@ -304,7 +306,8 @@ void ARDF_10ms(void)
       {
          // reset max level after 0.8s
 
-         gRssi0Max = ((int16_t)gARDFRssiMax) - 2 * 5 * ((int16_t)ARDF_Get_GainIndex(gEeprom.RX_VFO)); // 5dB step, 0.5 dB/bit resolution
+         gRssi0Max = ((int16_t)gARDFRssiMax) - 2 * ( ardf_gain_table[ ARDF_Get_GainIndex(gEeprom.RX_VFO) ].gain_dB - ardf_gain_table[0].gain_dB ) ; // 0.5 dB/bit
+
          if ( gRssi0Max < 0 )
          {
             gRssi0Max = 0;
@@ -755,5 +758,5 @@ t_ardf_gain_cheat_type ARDF_ActiveGainCheatType(uint8_t vfo)
 
 
 
-
 #endif
+

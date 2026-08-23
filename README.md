@@ -262,6 +262,7 @@ The script `compile-with-docker.sh` performs the following actions:
 - **RescueOps**
 - **Game**
 - **Fusion**
+- **ARDF**
 - **All** (builds all editions sequentially)
 
 ### Examples
