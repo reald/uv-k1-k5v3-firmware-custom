@@ -257,7 +257,7 @@ To find the right correction value
 
 * Set the corretion value to 0 (menu "ClkCor")
 * Start ARDF mode
-* Stop **how many seconds really pass** until **the radio tells 1 hour is up**. (Useful settings: NumFox = 10, FoxDur = 60.00s, sync to a reference clock.)
+* Stop **how many seconds really pass** until **the radio tells 1 hour is up** (useful settings: NumFox = 10, FoxDur = 60.00s)
 
 The formula for the correction value is:
 
