@@ -2,7 +2,11 @@
 
 This is a fork of [github.com/armel/uv-k1-k5v3-firmware-custom/](https://github.com/armel/uv-k1-k5v3-firmware-custom/) for Quansheng UV-K5V3 and UV-K1 custom firmware with additional ARDF support.
 
-**>>> Please read the [ARDF feature documentation](ARDF.md) :book: !<<<** 
+**>>>! Please read the [ARDF feature documentation ](ARDF.md) :book: !<<<** 
+
+<img src="images/ardf_setup.jpg" width=450 />
+
+**>>>! Please read the [ARDF feature documentation ](ARDF.md) :book: !<<<** 
 
 # Stats
 
