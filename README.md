@@ -1,6 +1,6 @@
 # ARDF
 
-This is a fork of [github.com/armel/uv-k1-k5v3-firmware-custom/](https://github.com/armel/uv-k1-k5v3-firmware-custom/) for Quansheng UV-K5V3 and UV-K1 custom firmware with additional ARDF support.
+This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom/) to add ARDF support for UV-K5 V3 and UV-K1 radios.
 
 **>>>! Please read the [ARDF feature documentation ](ARDF.md) :book: !<<<** 
 
