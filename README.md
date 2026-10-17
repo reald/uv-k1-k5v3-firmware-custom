@@ -34,12 +34,12 @@ Anyway, have fun.
 ## Compatible Devices
 
 > [!WARNING]
-> There are **new hardware versions out**. **Check carefully** which hardware version do you have **before flashing** any new firmware!
+> There are **differenz hardware versions out**. **Check carefully** which hardware version do you have **before flashing** any new firmware!
 
 :exclamation: All versions have different processors and need the right firmware and flash tool to run. :exclamation:
 
 > The hardware version of a device usually can be found on the label under the battery:
-> <img src="images/version2.jpg" width=800 />
+> <img src="images/hw_versions.jpg" width=800 />
 
 Version 1 devices have no version label, version 2 has "V2", version 3 has "V3" and Software Version 7.x (Menu 53 "VER").
 
@@ -47,31 +47,32 @@ Version 1 devices have no version label, version 2 has "V2", version 3 has "V3" 
 > There are falsely labeled devices out! (Internally V2 but V3 on the label.)
 > Please check [this discussion first.](https://github.com/armel/uv-k1-k5v3-firmware-custom/discussions/54)
 
-
-### Hardware version 1:
-* FCC ID "XBPUV-K5"
-* Quansheng UV-K5 version 1 :white_check_mark:
-* Quansheng UV-K5+ ("UV-5R PLUS") version 1 :heavy_check_mark:
-* Quansheng UV-K5(8) version 1 :heavy_check_mark:/ Quansheng UV-K6 version 1 :heavy_check_mark:
-* Quansheng UV-K5(99) version 1 :heavy_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 1](https://github.com/reald/uv-k5-firmware-custom/releases) :white_check_mark:
-
-
-### Hardware version 2:
-* FCC ID "XBPUV-K5"
-* Quansheng UV-K5(8) / UV-K5(99) (with FCC ID "XBPUV-K5") version 2 :heavy_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 2](https://codeberg.org/DL9CAT/uv-k5-firmware-custom_v2/releases) :white_check_mark:
-
-
-### Hardware version 3:
+### This project is for hardware version 3!
 * FCC ID "XBPUV-K5"
 * Quansheng UV-K5(8) / UV-K5(99) version 3 :heavy_check_mark:
 * Quansheng UV-K1 / UV-K1(8) :heavy_check_mark:
-* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :white_check_mark:
+* Download release: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :heavy_check_mark:
 
-NOT COMPATIBLE:
+
+### Hardware version 1 needs different firmware:
+* FCC ID "XBPUV-K5"
+* Quansheng UV-K5 version 1
+* Quansheng UV-K5+ ("UV-5R PLUS") version 1
+* Quansheng UV-K5(8) version 1 / Quansheng UV-K6 version 1
+* Quansheng UV-K5(99) version 1
+* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 1](https://github.com/reald/uv-k5-firmware-custom/releases)
+
+
+### Hardware version 2 needs different firmware:
+* FCC ID "XBPUV-K5"
+* Quansheng UV-K5(8) / UV-K5(99) (with FCC ID "XBPUV-K5") version 2
+* Use this project: [Quansheng UV-Kx firmware with ARDF support for hardware version 2](https://codeberg.org/DL9CAT/uv-k5-firmware-custom_v2/releases)
+
+
+### NOT COMPATIBLE:
 * Quansheng TK-11 / TK-11(8) :x:
 * Similar looking baofeng radios :x:
+
 
 
 ## ARDF Feature Manual
