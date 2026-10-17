@@ -197,10 +197,11 @@ By long pressing "2 A/B" key can quickly be switched between both configurations
 The manual gain index (attenuation) value can be chosen with UP/DOWN keys. Smaller values mean more attenuation. Use smaller values if you get closer to a transmitter.
 
 Because hardware version 3 has less attenuation dynamic than its predecessors, negative gain indexes were introduced:
-  * -1 disables the input LNA
-  * -2 and -3 tune to the second/third harmonic frequency (if the radio can receive this range)
+  * -1 disables the input LNA and adds 15dB gain
+  * -2 disables the input LNA with no gain
+  * -3 and -4 tune to the second/third harmonic frequency (if the radio can receive this range)
 
-All methods give you a huge additional attenuation and can be used to prevent overdriving the receiver.
+These methods give you a huge additional attenuation and can be used to prevent overdriving the receiver.
 Use this only close to a transmitter if the RSSI value is rising above 200.
 Be aware that the radiation pattern of your antenna might be different when receiving harmonics.
 
