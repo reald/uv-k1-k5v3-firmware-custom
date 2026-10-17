@@ -2,6 +2,7 @@
 # Adapted For UV-K5 EGZUMER custom software By EGZUMER, JOC2
 # Re-Adapted For UV-K5 EGZUMER/F4HWN custom software By JOC2
 # Re-Adapted For UV-K1 & UV-K5 V3 F4HWN custom software By F4HWN
+# Adapted for ARDF firmware by reald
 #
 #
 # based on template.py Copyright 2012 Dan Smith <dsmith@danplanet.com>
