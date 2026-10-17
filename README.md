@@ -26,6 +26,7 @@ This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v
 * Active fox and remaining cycle time display
 * Beep signal before end of fox cycle
 * Fox distance prediction
+* Simplified mode for [Draussenfuchs](https://draussenfuchs.de)
 
 ## Compatible Devices
 
