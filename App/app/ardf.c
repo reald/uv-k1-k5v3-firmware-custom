@@ -105,13 +105,20 @@ static void ARDF_ChangeGainCheat(t_ardf_gain_cheat_type oldtype, t_ardf_gain_che
       activefox = 0;
    }
 
-   if ( (oldtype == ARDF_NO_GAIN_CHEAT) && (newtype == ARDF_INT_LNA_OFF) )
+   if ( (oldtype == ARDF_NO_GAIN_CHEAT) && (newtype == ARDF_INT_LNA_OFF_15DB) )
    {
       // gain cheat freshly activated. save base frequency
       gARDFGainCheatBaseFrequency[vfo] = gTxVfo->freq_config_RX.Frequency * 10;
    }
 
-   if ( newtype == ARDF_INT_LNA_OFF )
+
+   // calculate new frequency
+
+   if ( newtype == ARDF_INT_LNA_OFF_15DB )
+   {
+      frequency = gARDFGainCheatBaseFrequency[vfo] / 10;
+   }
+   else if ( newtype == ARDF_INT_LNA_OFF )
    {
       frequency = gARDFGainCheatBaseFrequency[vfo] / 10;
    }
@@ -141,6 +148,9 @@ static void ARDF_ChangeGainCheat(t_ardf_gain_cheat_type oldtype, t_ardf_gain_che
       return;
    }
 
+
+   // change frequency
+
    gTxVfo->freq_config_RX.Frequency = frequency;
    BK4819_SetFrequency(frequency);
    // not gRequestSaveChannel = 1 because gain cheat must not be saved!
@@ -149,16 +159,29 @@ static void ARDF_ChangeGainCheat(t_ardf_gain_cheat_type oldtype, t_ardf_gain_che
    BK4819_WriteRegister(BK4819_REG_30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
    BK4819_WriteRegister(BK4819_REG_30, reg);
 
-   if ( newtype == ARDF_INT_LNA_OFF )
+
+   // change amplifier settings
+
+   if ( newtype == ARDF_INT_LNA_OFF_15DB )
    {
       // disable internal lna
       BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
       BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
+      ardf_gain_index[vfo][activefox] = 3;
+
+   }
+   else if ( newtype == ARDF_INT_LNA_OFF )
+   {
+      // disable internal lna
+      BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
+      BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
+      ardf_gain_index[vfo][activefox] = 0;
    }
    else
    {
       // set LNA for new frequency
       BK4819_PickRXFilterPathBasedOnFrequency(frequency);
+      ardf_gain_index[vfo][activefox] = 0;
    }
 
    // update gain cheat type
@@ -179,7 +202,11 @@ static void ARDF_UpdatePredictedDistIdx(void)
    rssi2distance_idx += ( ((int16_t)gARDFRssi0At100m) - gRssi0Max ) / 10; // 10 = 5dB/step * 2 bit/dB
 
    // if gain cheat is active just guess
-   if ( ARDF_ActiveGainCheatType(gEeprom.RX_VFO) != ARDF_NO_GAIN_CHEAT )
+   if ( ARDF_ActiveGainCheatType(gEeprom.RX_VFO) == ARDF_INT_LNA_OFF_15DB )
+   {
+      rssi2distance_idx -= (ARDF_RSSI0_GAINCHEAT_IDX_STEP - 3); // signal appears to be approx. >40 dB lower. compensate by decreasing index fixme: magic number
+   }
+   else if ( ARDF_ActiveGainCheatType(gEeprom.RX_VFO) != ARDF_NO_GAIN_CHEAT )
    {
       rssi2distance_idx -= ARDF_RSSI0_GAINCHEAT_IDX_STEP; // signal appears to be approx. >40 dB lower. compensate by decreasing index
    }
@@ -459,12 +486,10 @@ void ARDF_GainIncr(void)
       activefox = 0;
    }
 
-   if ( (ardf_gain_index[vfo][activefox] == 0)
-        && (ardf_type_gain_cheat[vfo][activefox] != ARDF_NO_GAIN_CHEAT)
-      )
+   if ( ardf_type_gain_cheat[vfo][activefox] != ARDF_NO_GAIN_CHEAT )
    {
       // reduce gain cheat
-      ARDF_ChangeGainCheat( ardf_type_gain_cheat[vfo][activefox], ardf_type_gain_cheat[vfo][activefox]-1 );
+      ARDF_ChangeGainCheat( ardf_type_gain_cheat[vfo][activefox], ardf_type_gain_cheat[vfo][activefox] - 1 );
    }
    else if ( ardf_gain_index[vfo][activefox] < (sizeof(ardf_gain_table)/sizeof(t_ardf_gain_table) - 1) )
    {
@@ -492,19 +517,18 @@ void ARDF_GainDecr(void)
    }
 
 
-   if ( ardf_gain_index[vfo][activefox] > 0 )
+   if ( (ardf_gain_index[vfo][activefox] > 0) && (ardf_type_gain_cheat[vfo][activefox] == ARDF_NO_GAIN_CHEAT) )
    {
       // normal gain decrease
       ardf_gain_index[vfo][activefox]--;
    }
-   else if ( (ardf_gain_index[vfo][activefox] == 0)
-             && (gSetting_ARDFEnable != false)
+   else if ( (gSetting_ARDFEnable != false)
              && (gARDFDFSimpleMode == false)
              && (ardf_type_gain_cheat[vfo][activefox] < ARDF_HARMONIC_3 )
            )
    {
       // increase gain cheat if ardf enabled (but not in DF simple)
-      ARDF_ChangeGainCheat( ardf_type_gain_cheat[vfo][activefox], ardf_type_gain_cheat[vfo][activefox]+1 );
+      ARDF_ChangeGainCheat( ardf_type_gain_cheat[vfo][activefox], ardf_type_gain_cheat[vfo][activefox] + 1 );
    }
    else
    {
@@ -578,12 +602,28 @@ void ARDF_DoGainCheat(void)
 {
    uint8_t vfo = gEeprom.RX_VFO;
    uint32_t frequency = 0;
+   uint8_t activefox = gARDFActiveFox;
 
-   if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF )
+   if ( ARDF_ActVfoHasGainRemember(vfo) == false )
+   {
+      // do not remember fox gains on this vfo
+      activefox = 0;
+   }
+
+   if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF_15DB )
+   {
+      // disable internal lna + 15dB gain
+      BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
+      BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
+      ardf_gain_index[vfo][activefox] = 3;
+      return;
+   }
+   else if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF )
    {
       // disable internal lna
       BK4819_ToggleGpioOut(BK4819_GPIO4_PIN32_VHF_LNA, false);
       BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31_UHF_LNA, false);
+      ardf_gain_index[vfo][activefox] = 0;
       return;
    }
    else if ( ARDF_ActiveGainCheatType(vfo) == ARDF_HARMONIC_2 )
@@ -627,11 +667,28 @@ void ARDF_UndoGainCheat(void)
 {
    uint8_t vfo = gEeprom.RX_VFO;
    uint32_t frequency = 0;
+   uint8_t activefox = gARDFActiveFox;
 
-   if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF )
+   if ( ARDF_ActVfoHasGainRemember(vfo) == false )
+   {
+      // do not remember fox gains on this vfo
+      activefox = 0;
+   }
+
+   if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF_15DB )
+   {
+      // reactivate LNA + 15 db gain
+      BK4819_PickRXFilterPathBasedOnFrequency(gARDFGainCheatBaseFrequency[vfo] / 10);
+      ardf_gain_index[vfo][activefox] = 3;
+
+      return;
+   }
+   else if ( ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF )
    {
       // reactivate LNA
       BK4819_PickRXFilterPathBasedOnFrequency(gARDFGainCheatBaseFrequency[vfo] / 10);
+      ardf_gain_index[vfo][activefox] = 0;
+
       return;
    }
    else if ( (ARDF_ActiveGainCheatType(vfo) == ARDF_HARMONIC_2) || (ARDF_ActiveGainCheatType(vfo) == ARDF_HARMONIC_3) )

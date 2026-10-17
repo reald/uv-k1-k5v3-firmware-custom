@@ -364,7 +364,11 @@ void UI_DisplayARDF_FreqCh(bool updatenow)
    {
       // gain cheat active
 
-      if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF) )
+      if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF_15DB) )
+      {
+         sprintf(buffer, "LNA O+15" );
+      }
+      else if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF) )
       {
          sprintf(buffer, "LNA OFF" );
       }

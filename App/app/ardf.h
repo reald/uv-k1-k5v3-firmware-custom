@@ -58,6 +58,7 @@ typedef struct
 typedef enum
 {
    ARDF_NO_GAIN_CHEAT,
+   ARDF_INT_LNA_OFF_15DB,
    ARDF_INT_LNA_OFF,
    ARDF_HARMONIC_2,
    ARDF_HARMONIC_3

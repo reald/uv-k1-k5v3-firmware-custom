@@ -193,9 +193,9 @@
                 "ENABLE_PREVENT_TX": true,
                 "ENABLE_UART_RW_BK_REGS": true,
                 "EDITION_STRING": "ARDF",
-                "TARGET": "f4hwn.ARDF_K5v3_K1",
+                "TARGET": "UV_K5v3_K1_ARDF",
                 "AUTHOR_STRING_2": "DL9CAT",
-                "VERSION_STRING_2": "v0.5"
+                "VERSION_STRING_2": "v0.5.1"
             }
         },
         {
