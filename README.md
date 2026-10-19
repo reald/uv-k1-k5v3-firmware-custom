@@ -2,6 +2,12 @@
 
 This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom/) to add ARDF support for Quansheng UV-K5 V3 and UV-K1 radios.
 
+Some features have been added to make it possible to use the radio as an amateur radio direction finding (ARDF) receiver on the 2m and 70cm band.
+
+Understand this as a proof of concept! This is experimental software, there is absolutely no warranty! Use it at your OWN RISK as a base for own experiments.
+
+Despite all the limitations this is one of the quickest and cheapest ways to get a usable ARDF receiver for the 2m and 70cm band!
+
 <img src="images/ardf_setup.jpg" width=800 />
 
 
