@@ -1,6 +1,6 @@
-# ARDF
+# ARDF - Amateur Radio Direction Finding with Quansheng UV-Kx Radios
 
-This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom/) to add ARDF support for UV-K5 V3 and UV-K1 radios.
+This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v3-firmware-custom/) to add ARDF support for Quansheng UV-K5 V3 and UV-K1 radios.
 
 <img src="images/ardf_setup.jpg" width=800 />
 
@@ -13,7 +13,7 @@ This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v
 * [Firmware Flashing](#firmware-flashing)
 * [Headphones](#headphones)
 * [Antenna Proposals](#antenna-proposals)
-* [Compiling and Building from Docker](#compiling-and-Building-from-docker)
+* [Compiling and Building from Docker](#compiling-and-building-from-docker)
 * [Flashing the Firmware with UVTools2](#flashing-the-firmware-with-uvtools2)
 * [Credits](#credits)
 * [License](#license)
@@ -27,8 +27,15 @@ This is a fork of [Armels Quansheng Firmware](https://github.com/armel/uv-k1-k5v
 * Beep signal before end of fox cycle
 * Fox distance prediction
 * Simplified mode for [Draussenfuchs](https://draussenfuchs.de)
+* 2m and 70cm band (but not 80m)
 
 ## Compatible Devices
+
+### This project is for UV-K5 hardware version 3 and UV-K1!
+* FCC ID "XBPUV-K5"
+* Quansheng UV-K5(8) / UV-K5(99) version 3 :heavy_check_mark:
+* Quansheng UV-K1 / UV-K1(8) :heavy_check_mark:
+* Download release: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :heavy_check_mark:
 
 > [!WARNING]
 > There are **different UV-K5 hardware versions out**. **Check carefully** which hardware version do you have **before flashing** any new firmware!
@@ -43,13 +50,6 @@ Version 1 devices have no version label, version 2 has "V2", version 3 has "V3" 
 > [!WARNING]
 > There are falsely labeled devices out! (Internally V2 but V3 on the label.)
 > Please check [this discussion first.](https://github.com/armel/uv-k1-k5v3-firmware-custom/discussions/54)
-
-### This project is for UV-K5 hardware version 3 and UV-K1!
-* FCC ID "XBPUV-K5"
-* Quansheng UV-K5(8) / UV-K5(99) version 3 :heavy_check_mark:
-* Quansheng UV-K1 / UV-K1(8) :heavy_check_mark:
-* Download release: [Quansheng UV-Kx firmware with ARDF support for hardware version 3](https://github.com/reald/uv-k1-k5v3-firmware-custom/releases) :heavy_check_mark:
-
 
 ### UV-K5 hardware version 1 needs different firmware:
 * FCC ID "XBPUV-K5"
