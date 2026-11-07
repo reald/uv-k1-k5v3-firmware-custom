@@ -449,13 +449,14 @@ struct {
 ul16 ARDFfree0;
 ul16 ARDFRSSI0At100m;
 ul32 ARDFFoxDuration;
-il16 ARDFClockCorrTicksMin;
+il16 ARDFClockCorrAddTicksPerMin_K1;
 u8 ARDFDFSimpleMode:1,
    ARDFGainRemember:2,
    ARDFNumFoxes:4,
    ARDFEnable:1;
 u8 ARDFCycleEndBeep_s;
-ul32 ARDFfree1;
+il16 ARDFClockCorrAddTicksPerMin_K2;
+ul16 ARDFfree1;
 
 
 """
@@ -1926,8 +1927,11 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             elif elname == "ARDFEnable":
                 _mem.ARDFEnable = element.value
 
-            elif elname == "ARDFClockCorrTicksMin":
-                _mem.ARDFClockCorrTicksMin = element.value
+            elif elname == "ARDFClockCorrAddTicksPerMin_K1":
+                _mem.ARDFClockCorrAddTicksPerMin_K1 = element.value
+
+            elif elname == "ARDFClockCorrAddTicksPerMin_K2":
+                _mem.ARDFClockCorrAddTicksPerMin_K2 = element.value
 
             elif elname == "ARDFRSSI0At100m":
                 _mem.ARDFRSSI0At100m = element.value
@@ -2694,9 +2698,13 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         val = RadioSettingValueInteger(100, 99999, tmp_ARDFFoxDuration)
         ARDFFoxDuration_setting = RadioSetting("ARDFFoxDuration", "ARDF Fox Transmitting Duration [1/100 s] (FoxDur)", val)
 
-        tmp_ARDFClockCorrTicksMin = _mem.ARDFClockCorrTicksMin
-        val = RadioSettingValueInteger(-500, 500, tmp_ARDFClockCorrTicksMin)
-        ARDFClockCorrTicksMin_setting = RadioSetting("ARDFClockCorrTicksMin", "ARDF Clock Correction add. 10ms Ticks per Minute", val)
+        tmp_ARDFClockCorrAddTicksPerMin_K1 = _mem.ARDFClockCorrAddTicksPerMin_K1
+        val = RadioSettingValueInteger(-500, 500, tmp_ARDFClockCorrAddTicksPerMin_K1)
+        ARDFClockCorrAddTicksPerMin_K1_setting = RadioSetting("ARDFClockCorrAddTicksPerMin_K1", "ARDF Clock Correction add. 10ms Ticks per Minute; Offset K1 (ClkCo1)", val)
+
+        tmp_ARDFClockCorrAddTicksPerMin_K2 = _mem.ARDFClockCorrAddTicksPerMin_K2
+        val = RadioSettingValueInteger(-500, 500, tmp_ARDFClockCorrAddTicksPerMin_K2)
+        ARDFClockCorrAddTicksPerMin_K2_setting = RadioSetting("ARDFClockCorrAddTicksPerMin_K2", "ARDF Clock Correction add. 10ms Ticks per Minute; Temperature dependend factor K2 [1/100] (ClkCo2)", val)
         
         val = RadioSettingValueBoolean(_mem.ARDFEnable)
         ARDFEnable_setting = RadioSetting("ARDFEnable", "ARDF Enable (ARDF)", val)
@@ -3341,7 +3349,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
             ardf.append(ARDFDFSimpleMode_setting)
             ardf.append(ARDFRSSI0At100m_setting)
             ardf.append(ARDFFoxDuration_setting)
-            ardf.append(ARDFClockCorrTicksMin_setting)
+            ardf.append(ARDFClockCorrAddTicksPerMin_K1_setting)
+            ardf.append(ARDFClockCorrAddTicksPerMin_K2_setting)
             ardf.append(ARDFNumFoxes_setting)
             ardf.append(ARDFGainRemember_setting)
             ardf.append(ARDFCycleEndBeep_s_setting)

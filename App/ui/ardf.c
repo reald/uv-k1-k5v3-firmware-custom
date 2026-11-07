@@ -311,8 +311,12 @@ void UI_DisplayARDF_Debug(void)
 {
    char buffer[17];
 
+   // clear line
+   memset(gFrameBuffer[3], 0, LCD_WIDTH);
+
    sprintf(buffer, "> %d - %d", gARDFdebug, gARDFdebug2);
    UI_PrintStringSmallNormal(buffer, 2, 0, 3);
+
    ST7565_BlitLine(3);
 }
 #endif
@@ -364,9 +368,9 @@ void UI_DisplayARDF_FreqCh(bool updatenow)
    {
       // gain cheat active
 
-      if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF_15DB) )
+      if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF_WITH_GAIN) )
       {
-         sprintf(buffer, "LNA O+15" );
+         sprintf(buffer, "LNA O%+2d", ARDF_Get_GainDB() );
       }
       else if ( (gInputBoxIndex == 0) && (ARDF_ActiveGainCheatType(vfo) == ARDF_INT_LNA_OFF) )
       {

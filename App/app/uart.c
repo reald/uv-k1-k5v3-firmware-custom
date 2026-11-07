@@ -49,6 +49,10 @@
     #include "sram-overlay.h"
 #endif
 
+#ifdef ENABLE_ARDF
+    #include "app/ardf.h"
+#endif
+
 #define UNUSED(x) (void)(x)
 
 #define DMA_INDEX(x, y, z) (((x) + (y)) % (z))
@@ -130,6 +134,8 @@ typedef struct {
     } Data;
 } REPLY_0527_t;
 
+
+
 typedef struct {
     Header_t Header;
     struct {
@@ -143,6 +149,38 @@ typedef struct {
     uint32_t Response[4];
 } CMD_052D_t;
 #endif
+
+
+
+#ifdef ENABLE_ARDF
+typedef struct {
+    Header_t Header;
+    struct {
+        uint32_t ARDFFoxDuration10ms_corr;
+        int16_t  ARDFClockCorrAddTicksPerMin_K1;
+        int16_t  ARDFClockCorrAddTicksPerMin_K2;
+    } Data;
+} REPLY_0542_t;
+
+typedef struct {
+    Header_t Header;
+    struct {
+        uint32_t ARDFCnt10ms;
+        uint32_t ARDFCnt10msCorr;
+        uint16_t BatteryVoltageAverage;
+        int16_t temp;
+    } Data;
+} REPLY_0543_t;
+
+typedef struct {
+    Header_t Header;
+    int16_t  ARDFClockCorrAddTicksPerMin_K1;
+    int16_t  ARDFClockCorrAddTicksPerMin_K2;
+} CMD_0544_t;
+
+#endif
+
+
 
 typedef struct {
     Header_t Header;
@@ -475,6 +513,51 @@ static void CMD_051D(uint32_t Port, const uint8_t *pBuffer)
 
     SendReply(Port, &Reply, sizeof(Reply));
 }
+
+#ifdef ENABLE_ARDF
+// read/write ARDF values
+static void CMD_0542(uint32_t Port)
+{
+    REPLY_0542_t Reply;
+
+    Reply.Header.ID             = 0x0542;
+    Reply.Header.Size           = sizeof(Reply.Data);
+    Reply.Data.ARDFFoxDuration10ms_corr = gARDFFoxDuration10ms_corr;
+    Reply.Data.ARDFClockCorrAddTicksPerMin_K1 = gARDFClockCorrAddTicksPerMin_K1;
+    Reply.Data.ARDFClockCorrAddTicksPerMin_K2 = gARDFClockCorrAddTicksPerMin_K2;
+
+    SendReply(Port, &Reply, sizeof(Reply));
+}
+
+static void CMD_0543(uint32_t Port)
+{
+    REPLY_0543_t Reply;
+
+    Reply.Header.ID             = 0x0543;
+    Reply.Header.Size           = sizeof(Reply.Data);
+    Reply.Data.ARDFCnt10ms = gARDFCnt10ms;
+    Reply.Data.ARDFCnt10msCorr = gARDFCnt10msCorr;
+    Reply.Data.BatteryVoltageAverage = gBatteryVoltageAverage;
+    Reply.Data.temp = ARDF_TEMPERATURE();
+
+    SendReply(Port, &Reply, sizeof(Reply));
+}
+
+static void CMD_0544(uint32_t Port, const uint8_t *pBuffer)
+{
+    const CMD_0544_t *pCmd = (const CMD_0544_t *)pBuffer;
+
+    gARDFClockCorrAddTicksPerMin_K1 = LIMIT_TO_RANGE(pCmd->ARDFClockCorrAddTicksPerMin_K1, ARDF_K1_RAW_MIN, ARDF_K1_RAW_MAX);
+    gARDFClockCorrAddTicksPerMin_K2 = LIMIT_TO_RANGE(pCmd->ARDFClockCorrAddTicksPerMin_K2, ARDF_K2_RAW_MIN, ARDF_K2_RAW_MAX);
+
+    gARDFRequestSaveEEPROM = true;
+
+    CMD_0542(Port);
+}
+
+
+
+#endif
 
 #ifdef ENABLE_EXTRA_UART_CMD
 // read RSSI
@@ -823,6 +906,20 @@ void UART_HandleCommand(uint32_t Port)
 
         case 0x0521:    // Not implementing non-authentic command
             break;
+
+#ifdef ENABLE_ARDF
+        case 0x0542:
+            CMD_0542(Port);
+            break;
+
+        case 0x0543:
+            CMD_0543(Port);
+            break;
+
+        case 0x0544:
+            CMD_0544(Port, pUART_Command->Buffer);
+            break;
+#endif
 
 #ifdef ENABLE_EXTRA_UART_CMD
         case 0x0527:

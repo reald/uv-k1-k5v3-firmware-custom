@@ -21,7 +21,7 @@
 
 #include "driver/keyboard.h"
 
-#define LIMIT_TO_RANGE(x, low, high) ( (x > high) ? (high) : ((x < low) ? (low) : (x)) )
+#define LIMIT_TO_RANGE(x, low, high) ( ((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)) )
 
 
 #define ARDF_NUM_FOX_MAX 10
@@ -39,9 +39,22 @@
 #define ARDF_DEFAULT_GAIN_REMEMBER 1
 #define ARDF_DEFAULT_DF_SIMPLE false
 #define ARDF_DEFAULT_RSSI0AT100M 153 // default. depends on transmitter and antennas
+#define ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K1 (+00) // default clock correction offset K1
+#define ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K2 (+00) // default clock correction temperature dependend factor K2 (Res: 1/100)
+#define ARDF_K1_RAW_MIN -500
+#define ARDF_K1_RAW_MAX 500
+#define ARDF_K2_RAW_MIN -500
+#define ARDF_K2_RAW_MAX 500
+
 #define ARDF_RSSI0_MAX 226
 #define ARDF_RSSI0_GAINCHEAT_IDX_STEP 9 // signal with gain cheat on is very roughly about 45 dB = 9 * 5 dB/step lower
-#define ARDF_CLOCK_CORR_TICKS_PER_MIN (+00) // default clock correction
+#define ARDF_LNA_OFF_WITH_GAIN_GAINIDX 3 // gain index in lna off with gain mode. 3 => 15dB
+
+#define ARDF_TEMP_RESOLUTION 10
+#define ARDF_K2_RESOLUTION 100
+
+#define ARDF_TEMPERATURE() (int16_t)(gARDFTempSum / (int32_t)gARDFTempCnt)
+#define ARDF_DURATION_CORR(duration, temperature, K1, K2)  (uint32_t)( (int32_t)duration + ( (int32_t)duration * ( (int32_t)K1 + (int32_t)K2 * (int32_t)temperature / (ARDF_K2_RESOLUTION * ARDF_TEMP_RESOLUTION) )) / 6000 )
 
 //#define ARDF_ENABLE_SHOW_DEBUG_DATA
 
@@ -58,7 +71,7 @@ typedef struct
 typedef enum
 {
    ARDF_NO_GAIN_CHEAT,
-   ARDF_INT_LNA_OFF_15DB,
+   ARDF_INT_LNA_OFF_WITH_GAIN,
    ARDF_INT_LNA_OFF,
    ARDF_HARMONIC_2,
    ARDF_HARMONIC_3
@@ -72,7 +85,9 @@ extern const char *ardf_rssi2distance[];
 extern uint8_t               ardf_gain_index[2][ARDF_NUM_FOX_MAX];
 extern t_ardf_gain_cheat_type ardf_type_gain_cheat[2][ARDF_NUM_FOX_MAX];
 
-extern uint32_t              gARDFTime10ms;
+extern volatile uint32_t     gARDFTime10ms;
+extern uint32_t              gARDFCnt10ms;
+extern uint32_t              gARDFCnt10msCorr;
 extern uint32_t              gARDFFoxDuration10ms;
 extern uint32_t              gARDFFoxDuration10ms_corr;
 extern uint8_t               gARDFNumFoxes;
@@ -84,11 +99,14 @@ extern bool                  gARDFPlayEndBeep;
 extern unsigned int          gARDFRssiMax;
 extern uint8_t               gARDFMemModeFreqToggleCnt_s;
 extern bool                  gARDFRequestSaveEEPROM;
-extern int16_t               gARDFClockCorrAddTicksPerMin;
+extern int16_t               gARDFClockCorrAddTicksPerMin_K1;
+extern int16_t               gARDFClockCorrAddTicksPerMin_K2;
 extern uint32_t              gARDFGainCheatBaseFrequency[2];
 extern uint16_t              gARDFRssi0At100m;
 extern int16_t               gRssi0Max;
 extern int16_t               gARDFDistanceIdx;
+extern int32_t               gARDFTempSum;
+extern uint16_t              gARDFTempCnt;
 
 #ifdef ARDF_ENABLE_SHOW_DEBUG_DATA
 extern int16_t               gARDFdebug;
@@ -107,6 +125,7 @@ extern bool ARDF_ActVfoHasGainRemember(uint8_t vfo);
 extern void ARDF_ActivateGainIndex(void);
 extern int32_t ARDF_GetRestTime_s(void);
 extern int8_t ARDF_Get_GainDiff(void);
+extern int8_t ARDF_Get_GainDB(void);
 extern void ARDF_DoGainCheat(void);
 extern void ARDF_UndoGainCheat(void);
 extern void ARDF_StopGainCheatFox(void);

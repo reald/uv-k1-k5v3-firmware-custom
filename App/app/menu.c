@@ -657,7 +657,6 @@ void MENU_AcceptSetting(void)
             {
                 // value updated
                 gARDFFoxDuration10ms = gSubMenuSelection;
-                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
 
                 gARDFRequestSaveEEPROM = true;
             }
@@ -712,13 +711,23 @@ void MENU_AcceptSetting(void)
             }
             return;
 
-        case MENU_ARDF_CLOCK_CORR:
+        case MENU_ARDF_CLOCK_CORR_K1:
 
-            if ( gARDFClockCorrAddTicksPerMin != gSubMenuSelection )
+            if ( gARDFClockCorrAddTicksPerMin_K1 != gSubMenuSelection )
             {
                 // value updated
-                gARDFClockCorrAddTicksPerMin = gSubMenuSelection;
-                gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
+                gARDFClockCorrAddTicksPerMin_K1 = gSubMenuSelection;
+
+                gARDFRequestSaveEEPROM = true;
+            }
+            return;
+
+        case MENU_ARDF_CLOCK_CORR_K2:
+
+            if ( gARDFClockCorrAddTicksPerMin_K2 != gSubMenuSelection )
+            {
+                // value updated
+                gARDFClockCorrAddTicksPerMin_K2 = gSubMenuSelection;
 
                 gARDFRequestSaveEEPROM = true;
             }
@@ -1315,8 +1324,12 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gARDFCycleEndBeep_s;
             break;
 
-        case MENU_ARDF_CLOCK_CORR:
-            gSubMenuSelection = gARDFClockCorrAddTicksPerMin;
+        case MENU_ARDF_CLOCK_CORR_K1:
+            gSubMenuSelection = gARDFClockCorrAddTicksPerMin_K1;
+            break;
+
+        case MENU_ARDF_CLOCK_CORR_K2:
+            gSubMenuSelection = gARDFClockCorrAddTicksPerMin_K2;
             break;
 #endif
 
@@ -2235,21 +2248,15 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
         gRequestDisplayScreen = DISPLAY_MENU;
         return;
     }
-
-    if ( UI_MENU_GetCurrentMenuId() == MENU_ARDF_CLOCK_CORR )
+    else if ( UI_MENU_GetCurrentMenuId() == MENU_ARDF_CLOCK_CORR_K1 )
     {
-        int16_t correction = Direction + gSubMenuSelection;
-        if (correction <= 500)
-        {
-            if (correction < -500)
-                correction = -500;
-        }
-        else
-        {
-            correction = 500;
-        }
-
-        gSubMenuSelection     = correction;
+        gSubMenuSelection     = LIMIT_TO_RANGE(Direction + gSubMenuSelection, ARDF_K1_RAW_MIN, ARDF_K1_RAW_MAX);
+        gRequestDisplayScreen = DISPLAY_MENU;
+        return;
+    }
+    else if ( UI_MENU_GetCurrentMenuId() == MENU_ARDF_CLOCK_CORR_K2 )
+    {
+        gSubMenuSelection     = LIMIT_TO_RANGE(Direction + gSubMenuSelection, ARDF_K2_RAW_MIN, ARDF_K2_RAW_MAX);
         gRequestDisplayScreen = DISPLAY_MENU;
         return;
     }

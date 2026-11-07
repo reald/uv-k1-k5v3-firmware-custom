@@ -391,21 +391,23 @@ gEeprom.FreqChannel[1]   = IS_FREQ_CHANNEL(Data16[5]) ? Data16[5] : (FREQ_CHANNE
     // part 2
     PY25Q16_ReadBuffer(0x00D000 + 0x08, Data, 8);
 
-    if ( (Data[0] == 0xFF) && (Data[1] == 0xFF) )
-    {
-        // eeprom empty
-        gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
-    }
-    else
-    {
-        memcpy(&gARDFClockCorrAddTicksPerMin, &Data[0], sizeof(gARDFClockCorrAddTicksPerMin));
 
-        if ( (gARDFClockCorrAddTicksPerMin < -500) || (gARDFClockCorrAddTicksPerMin > 500) )
-        {
-            gARDFClockCorrAddTicksPerMin = ARDF_CLOCK_CORR_TICKS_PER_MIN;
-        }
+    // Data[0] .. Data[1]
+    memcpy(&gARDFClockCorrAddTicksPerMin_K1, &Data[0], sizeof(gARDFClockCorrAddTicksPerMin_K1));
+
+    if ( (gARDFClockCorrAddTicksPerMin_K1 < ARDF_K1_RAW_MIN) || (gARDFClockCorrAddTicksPerMin_K1 > ARDF_K1_RAW_MAX) ) // max +- 500 ticks/min
+    {
+        gARDFClockCorrAddTicksPerMin_K1 = ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K1;
     }
-    gARDFFoxDuration10ms_corr = (uint32_t)( (int32_t)gARDFFoxDuration10ms + ( (int32_t)gARDFFoxDuration10ms * (int32_t)gARDFClockCorrAddTicksPerMin)/6000 );
+
+    // Data[4] ..Data[5]
+    memcpy(&gARDFClockCorrAddTicksPerMin_K2, &Data[4], sizeof(gARDFClockCorrAddTicksPerMin_K2));
+
+    if ( (gARDFClockCorrAddTicksPerMin_K2 < ARDF_K2_RAW_MIN) || (gARDFClockCorrAddTicksPerMin_K2 > ARDF_K2_RAW_MAX) ) // max +-5 ticks/min/deg
+    {
+        gARDFClockCorrAddTicksPerMin_K2 = ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K2;
+    }
+
 
     if ( Data[2] != 0xFF )
     {
@@ -421,7 +423,12 @@ gEeprom.FreqChannel[1]   = IS_FREQ_CHANNEL(Data16[5]) ? Data16[5] : (FREQ_CHANNE
         gARDFNumFoxes = ARDF_DEFAULT_NUM_FOXES;
         gARDFGainRemember = ARDF_DEFAULT_GAIN_REMEMBER;
         gARDFDFSimpleMode = ARDF_DEFAULT_DF_SIMPLE;
+        gARDFClockCorrAddTicksPerMin_K1 = ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K1; // 0xffff is valid (-1). cannot detect empty eeprom itself
+        gARDFClockCorrAddTicksPerMin_K2 = ARDF_DEFAULT_CLOCK_CORR_TICKS_PER_MIN_K2; // 0xffff is valid (-1). cannot detect empty eeprom itself
     }
+
+    gARDFFoxDuration10ms_corr = ARDF_DURATION_CORR(gARDFFoxDuration10ms, ARDF_TEMPERATURE(), gARDFClockCorrAddTicksPerMin_K1, gARDFClockCorrAddTicksPerMin_K2);
+
 
     if ( Data[3] != 0xFF )
     {
@@ -432,8 +439,6 @@ gEeprom.FreqChannel[1]   = IS_FREQ_CHANNEL(Data16[5]) ? Data16[5] : (FREQ_CHANNE
         // eeprom empty. use defaults
         gARDFCycleEndBeep_s = ARDF_CYCLE_END_BEEP_S_DEFAULT;
     }
-
-
 
 #endif
 
@@ -808,7 +813,7 @@ void SETTINGS_SaveARDF(void)
 
     union {
         struct {
-            int16_t  ARDFClockCorrTicksMin;
+            int16_t  ARDFClockCorrAddTicksPerMin_K1;
 
             uint8_t  ARDFEnable:1;
             uint8_t  NumFoxes:4;
@@ -816,7 +821,9 @@ void SETTINGS_SaveARDF(void)
             uint8_t  DFSimpleMode:1;
 
             uint8_t  CycleEndBeep_s;
-            uint32_t free1;
+            int16_t  ARDFClockCorrAddTicksPerMin_K2;
+            uint16_t free1;
+
         };
         uint8_t __raw[8];
     } __attribute__((packed)) ARDFCfg2;
@@ -827,12 +834,13 @@ void SETTINGS_SaveARDF(void)
     ARDFCfg.ARDFRSSI0At100m = gARDFRssi0At100m;
     ARDFCfg.FoxDuration = gARDFFoxDuration10ms;
 
-    ARDFCfg2.ARDFClockCorrTicksMin = gARDFClockCorrAddTicksPerMin;
+    ARDFCfg2.ARDFClockCorrAddTicksPerMin_K1 = gARDFClockCorrAddTicksPerMin_K1;
     ARDFCfg2.ARDFEnable = gSetting_ARDFEnable;
     ARDFCfg2.NumFoxes = gARDFNumFoxes;
     ARDFCfg2.GainRemember = gARDFGainRemember;
     ARDFCfg2.DFSimpleMode = gARDFDFSimpleMode;
     ARDFCfg2.CycleEndBeep_s = gARDFCycleEndBeep_s;
+    ARDFCfg2.ARDFClockCorrAddTicksPerMin_K2 = gARDFClockCorrAddTicksPerMin_K2;
 
     PY25Q16_WriteBuffer(0x00D000, ARDFCfg.__raw, sizeof(ARDFCfg.__raw), true);
     PY25Q16_WriteBuffer(0x00D000 + 0x08, ARDFCfg2.__raw, sizeof(ARDFCfg2.__raw), true);

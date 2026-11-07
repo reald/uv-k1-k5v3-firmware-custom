@@ -35,6 +35,7 @@
 #include "driver/py25q16.h"
 #include "driver/flash.h"
 #include "driver/gpio.h"
+#include "driver/systick.h"
 #include "driver/system.h"
 #include "driver/st7565.h"
 #include "frequencies.h"
@@ -143,7 +144,7 @@ void BOARD_ADC_Init(void)
     LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_ADC1);
     LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSOURCE_PCLK_DIV4);
 
-    LL_ADC_SetCommonPathInternalCh(ADC1_COMMON, LL_ADC_PATH_INTERNAL_NONE);
+    LL_ADC_SetCommonPathInternalCh(ADC1_COMMON, LL_ADC_PATH_INTERNAL_TEMPSENSOR); // enables VREFINT, too
     LL_ADC_SetResolution(ADC1, LL_ADC_RESOLUTION_12B);
     LL_ADC_SetDataAlignment(ADC1, LL_ADC_DATA_ALIGN_RIGHT);
     LL_ADC_SetSequencersScanMode(ADC1, LL_ADC_SEQ_SCAN_DISABLE);
@@ -155,12 +156,16 @@ void BOARD_ADC_Init(void)
     LL_ADC_REG_SetSequencerDiscont(ADC1, LL_ADC_REG_SEQ_DISCONT_DISABLE);
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_8);
     LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_8, LL_ADC_SAMPLINGTIME_41CYCLES_5);
+    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_TEMPSENSOR, LL_ADC_SAMPLINGTIME_239CYCLES_5); // 15us sample time (PY32F071_Datasheet_V0.8.pdf 5.3.15). ADC clock is PCLK/4=48 MHz/4=12 MHz, 239.5 cycles=20us is > 15us
+    LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_VREFINT, LL_ADC_SAMPLINGTIME_239CYCLES_5); // 15us sample time (PY32F071_Datasheet_V0.8.pdf 5.3.15). ADC clock is PCLK/4=48 MHz/4=12 MHz, 239.5 cycles=20us is > 15us
 
     LL_ADC_StartCalibration(ADC1);
     while (LL_ADC_IsCalibrationOnGoing(ADC1))
         ;
 
     LL_ADC_Enable(ADC1);
+
+    SYSTICK_DelayUs(120); // wait max ADC startup time (PY32F071_Datasheet_V0.8.pdf 5.3.19)
 }
 
 void BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent)
@@ -173,6 +178,53 @@ void BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent)
     *pVoltage = LL_ADC_REG_ReadConversionData12(ADC1);
     *pCurrent = 0;
 }
+
+
+
+// temperature characteristics (PY32F071_Datasheet_V0.8.pdf 5.3.19)
+#define TEMPSENSOR_AVGSLOPE_UV   2500  // Avg_Slope, typ. (uV/DegC)
+#define TEMPSENSOR_V30_MV        760   // V30, typ. (mV at 30 degC)
+#define TEMPSENSOR_CAL_TEMP      30    // degC
+#define VREFINT_TYP_MV           1200  // VREFINT, typ. (mV)
+
+// Selects Channel as the (single) regular sequencer rank and returns its
+// raw 12-bit conversion result. Shared helper for both internal channels;
+// BOARD_ADC_GetBatteryInfo() above leaves the sequencer parked on the
+// battery channel (8) between calls, so this restores that afterwards.
+static uint16_t ADC_ReadChannel(uint32_t Channel)
+{
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, Channel);
+    LL_ADC_REG_StartConversionSWStart(ADC1);
+    while (!LL_ADC_IsActiveFlag_EOS(ADC1))
+        ;
+    LL_ADC_ClearFlag_JEOS(ADC1);
+
+    return LL_ADC_REG_ReadConversionData12(ADC1);
+}
+
+
+
+int32_t BOARD_ADC_GetTemperature(void)
+{
+    const uint16_t vrefintRaw = ADC_ReadChannel(LL_ADC_CHANNEL_VREFINT);
+    const uint16_t tempRaw    = ADC_ReadChannel(LL_ADC_CHANNEL_TEMPSENSOR);
+
+    // Restore the sequencer to the battery-voltage channel used by
+    // BOARD_ADC_GetBatteryInfo().
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_8);
+
+    const uint32_t vddaMv = (VREFINT_TYP_MV * __LL_ADC_DIGITAL_SCALE(LL_ADC_RESOLUTION_12B)) / vrefintRaw;
+
+    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(
+        TEMPSENSOR_AVGSLOPE_UV,
+        TEMPSENSOR_V30_MV,
+        TEMPSENSOR_CAL_TEMP,
+        vddaMv,
+        tempRaw,
+        LL_ADC_RESOLUTION_12B);
+}
+
+
 
 void BOARD_Init(void)
 {

@@ -68,6 +68,8 @@ const t_menu_item MenuList[] =
     {"GainRe",      MENU_ARDF_GAIN_REMEMBER },
     {"RSS100",      MENU_ARDF_RSSI0_100M },
     {"EndSig",      MENU_ARDF_CYCLE_END_BEEP },
+    {"ClkCo1",      MENU_ARDF_CLOCK_CORR_K1 },
+    {"ClkCo2",      MENU_ARDF_CLOCK_CORR_K2 },
     {"ClkCor",      MENU_ARDF_CLOCK_CORR },
     {"SetNav",      MENU_SET_NAV       }, // set navigation (LEFT / RIGHT or UP / DOWN)
 #endif
@@ -815,14 +817,49 @@ void UI_DisplayMenu(void)
             break;
 
         case MENU_ARDF_CYCLE_END_BEEP:
-                if ( gSubMenuSelection != 0 )
+            if ( gSubMenuSelection != 0 )
                 sprintf(String, "%d s\nHeadphone:\nUse Filter", gSubMenuSelection);
             else
                 sprintf(String, "off");
             break;
 
+        case MENU_ARDF_CLOCK_CORR_K1:
+            sprintf(String, "%+d", gSubMenuSelection);
+            break;
+
+        case MENU_ARDF_CLOCK_CORR_K2:
+            char sign = '+';
+            int32_t k2_abs = gSubMenuSelection;
+            if ( k2_abs < 0 )
+            {
+               k2_abs = -k2_abs;
+               sign = '-';
+            }
+            sprintf(String, "%c%01d.%02u", sign, k2_abs / ARDF_K2_RESOLUTION, k2_abs % ARDF_K2_RESOLUTION );
+            break;
+
         case MENU_ARDF_CLOCK_CORR:
-            sprintf(String, "%d", gSubMenuSelection);
+            char sign_temp = ' ';
+            int32_t ardftemp = ARDF_TEMPERATURE();
+            if ( ardftemp < 0 )
+            {
+               ardftemp = - ardftemp;
+               sign_temp = '-';
+            }
+
+            char sign_k2 = '+';
+            int32_t k2_abs_2 = gARDFClockCorrAddTicksPerMin_K2;
+            if ( k2_abs_2 < 0 )
+            {
+               k2_abs_2 = -k2_abs_2;
+               sign_k2 = '-';
+            }
+
+            sprintf(String, "Temp:%c%02d.%01u\nK1=%d\nK2=%c%01d.%02u\nDur=%d\nCorr=%d", sign_temp, ardftemp / ARDF_TEMP_RESOLUTION, ardftemp % ARDF_TEMP_RESOLUTION,
+                                                                       gARDFClockCorrAddTicksPerMin_K1,
+                                                                       sign_k2, k2_abs_2 / ARDF_K2_RESOLUTION, k2_abs_2 % ARDF_K2_RESOLUTION,
+                                                                       gARDFFoxDuration10ms,
+                                                                       gARDFFoxDuration10ms_corr );
             break;
 
 #endif
