@@ -228,6 +228,10 @@ typedef union
 // static bool     bIsEncrypted = true;
 #define bIsEncrypted true
 
+#ifdef ENABLE_ARDF
+static bool bIsArdfClockConfigRunning = false;
+#endif
+
 #ifdef ENABLE_USB
 static void SendReply_VCP(void *pReply, uint16_t Size)
 {
@@ -909,15 +913,21 @@ void UART_HandleCommand(uint32_t Port)
 
 #ifdef ENABLE_ARDF
         case 0x0542:
+            bIsArdfClockConfigRunning = true;
             CMD_0542(Port);
             break;
 
         case 0x0543:
+            bIsArdfClockConfigRunning = true;
             CMD_0543(Port);
             break;
 
         case 0x0544:
             CMD_0544(Port, pUART_Command->Buffer);
+            bIsArdfClockConfigRunning = false;
+#ifdef ENABLE_FEAT_F4HWN_SCREENSHOT
+            gUART_LockScreenshot = 255;
+#endif
             break;
 #endif
 
@@ -960,7 +970,20 @@ void UART_HandleCommand(uint32_t Port)
 #endif
     } // switch
 
-    #ifdef ENABLE_FEAT_F4HWN_SCREENSHOT
-        gUART_LockScreenshot = 20; // lock screenshot
+#ifdef ENABLE_FEAT_F4HWN_SCREENSHOT
+    #ifdef ENABLE_ARDF
+    // lock screenshot
+    if ( bIsArdfClockConfigRunning != false )
+    {
+        gUART_LockScreenshot = 255;
+    }
+    else if ( gUART_LockScreenshot < 20 )
+    {
+        gUART_LockScreenshot = 20;
+    }
+    #else
+    gUART_LockScreenshot = 20;
     #endif
+#endif
+
 }
