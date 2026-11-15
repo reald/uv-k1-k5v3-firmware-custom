@@ -120,11 +120,7 @@ static void ARDF_ChangeGainCheat(t_ardf_gain_cheat_type oldtype, t_ardf_gain_che
 
    // calculate new frequency
 
-   if ( newtype == ARDF_INT_LNA_OFF_WITH_GAIN )
-   {
-      frequency = gARDFGainCheatBaseFrequency[vfo] / 10;
-   }
-   else if ( newtype == ARDF_INT_LNA_OFF )
+   if ( (newtype == ARDF_INT_LNA_OFF_WITH_GAIN) || (newtype == ARDF_INT_LNA_OFF) )
    {
       frequency = gARDFGainCheatBaseFrequency[vfo] / 10;
    }
