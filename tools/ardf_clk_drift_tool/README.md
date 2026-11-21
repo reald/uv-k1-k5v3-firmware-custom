@@ -15,14 +15,11 @@ This python tool calculates the needed correction factors and stores them into t
 ## Contents
 1. [Preconditions](#preconditions)
 1. [Installation](#installation)
-1. [Quick start](#quick-start) 
 1. [Calibration procedure](#calibration-procedure) 
 1. [The display](#the-display)
 1. [Command line options](#command-line-options)
 1. [Troubleshooting](#troubleshooting)
 
-
----
 
 ## Preconditions
 
@@ -36,8 +33,6 @@ This python tool calculates the needed correction factors and stores them into t
 The tool automatically detects the connected hardware version and chooses the right compensation stategy (with or without temperature compensation).
 
  
----
-
 ## Installation
 
 ### Linux
@@ -69,7 +64,6 @@ No tool installation needed. Simply run the provided .exe file.
 USB serial adapters may need a driver (CH340, CP210x or FTDI chips). The port appears as `COMx` in the Device Manager. Close every other program that uses the port.
 
 
----
 
 ## Calibration procedure
 
@@ -96,15 +90,16 @@ calibration at an ambient temperature roughly about as the temperatur at the int
 facors in the radio
 
 
----
 
 ## The display
 
 The window contains four plots and, at the bottom, an information box with the write button next to it. 
 
+<img src="ardf_clk_drift_tool_display.png" width=1024 />
+
 ### Plot 1 – Drift
 
-* **Red:** drift of the uncorrected clock: PC time minus radio counter, in seconds. A rising line means the radio is too slow.
+* **Red:** drift of the uncorrected clock: PC time minus radio counter, in seconds. A rising line means the radios internal clock runs too slow.
 * **Green:** drift of the corrected clock (the correction active in the radio).
 
 
@@ -201,7 +196,6 @@ The large button to the right of the information box is used to store the calibr
 | `-h`, `--help` | – | Show the built-in help. |
 
 
----
 
 ## Troubleshooting
 
@@ -216,5 +210,3 @@ The large button to the right of the information box is used to store the calibr
 | `K1` and `K2` change strongly although the temperature is constant | With a small temperature span the two values are strongly coupled; only their combination at the current temperature is well determined. Check the current correction in the bold line and wait for a larger temperature span. |
 | The dots in plot 4 are far from the orange line | The internal temperature does not follow the oscillator closely (heating or cooling too fast). Repeat the measurement with slower temperature changes. |
 | Text in the information box is very small | The window is small. Enlarge it. |
-
----

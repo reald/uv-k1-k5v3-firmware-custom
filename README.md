@@ -262,23 +262,10 @@ So all timers in the CPU are not very precise. This leads to a heavily drifting 
 > [!Note]
 > If no timing is used (e.g. in ARDF="DF Simple" mode) clock correction is **not** necessary.
 
-The firmware provides a correction mechanism to reach acceptable ranges.
+The firmware provides a correction mechanism to reach acceptable ranges. For hardware version 3 a temperature
+dependend calibration has been introduced in firmware ARDF-K5v3_K1-v0.6.
 
-To find the right correction value
-
-* Set the corretion value to 0 (menu "ClkCor")
-* Start ARDF mode
-* Stop **how many seconds really pass** until **the radio tells 1 hour is up** (useful settings: NumFox = 10, FoxDur = 60.00s)
-
-The formula for the correction value is:
-
-$$ CorrectionValue = 6000 - (StoppedSeconds * 100)/60 $$
-
-E.g. if the radio finished 60 one minute cycles in 59 min and 36 seconds = 59 * 60 + 36 = 3576s the calculation would be:
-
-$$ CorrectionValue = 6000 - (3576 * 100)/60 = 40 $$
-
-Enter this value in menu "ClkCor" using UP/DOWN keys (allowed range: -500 ... 500). The value is stored in eeprom.
+The calibration is done with this [clock calibration tool](tools/ardf_clk_drift_tool/README.md).
 
 
 #### Function keys ####
