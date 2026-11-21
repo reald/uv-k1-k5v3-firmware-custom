@@ -265,7 +265,7 @@ So all timers in the CPU are not very precise. This leads to a heavily drifting 
 The firmware provides a correction mechanism to reach acceptable ranges. For hardware version 3 a temperature
 dependend calibration has been introduced in firmware ARDF-K5v3_K1-v0.6.
 
-The calibration is done with this [clock calibration tool](tools/ardf_clk_drift_tool/README.md).
+The calibration is done with this [clock calibration tool](tools/ardf_clk_drift_tool).
 
 
 #### Function keys ####
